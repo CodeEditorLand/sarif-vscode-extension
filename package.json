@@ -1,36 +1,17 @@
 {
-	"name": "sarif-viewer",
-	"displayName": "SARIF Viewer",
-	"version": "0.0.1",
-	"private": false,
-	"description": "Adds support for viewing SARIF logs",
-	"keywords": [
-		"land"
+	"activationEvents": [
+		"onLanguage:json",
+		"onUri",
+		"workspaceContains:.git",
+		"workspaceContains:.sarif"
 	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/SarifLandExtension#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/SarifLandExtension/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/SarifLandExtension.git"
-	},
-	"license": "SEE LICENSE IN LICENSE",
 	"author": {
-		"name": "🌆 — Land —",
 		"email": "Land@PlayForm.Cloud",
+		"name": "🌆 — Land —",
 		"url": "HTTPS://Land.PlayForm.Cloud"
 	},
-	"type": "module",
-	"main": "./out/context.js",
-	"scripts": {
-		"Document": "Document 'Source/**/*.ts'",
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"server": "webpack serve --mode development",
-		"prestart": "npm install",
-		"start": "webpack --watch --mode development",
-		"test:watch": "mocha --watch",
-		"testcoverage": "nyc mocha"
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/SarifLandExtension/issues"
 	},
 	"contributes": {
 		"commands": [
@@ -134,12 +115,6 @@
 			]
 		}
 	},
-	"activationEvents": [
-		"onLanguage:json",
-		"onUri",
-		"workspaceContains:.git",
-		"workspaceContains:.sarif"
-	],
 	"dependencies": {
 		"@types/diff": "5.2.0",
 		"chokidar": "3.6.0",
@@ -152,6 +127,7 @@
 		"stream-meter": "1.0.4",
 		"tmp": "0.2.3"
 	},
+	"description": "Adds support for viewing SARIF logs",
 	"devDependencies": {
 		"@actions/core": "1.10.1",
 		"@actions/github": "6.0.0",
@@ -178,11 +154,35 @@
 		"style-loader": "4.0.0",
 		"ts-loader": "9.5.1"
 	},
+	"displayName": "SARIF Viewer",
 	"extensionDependencies": [
 		"vscode.git"
 	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/SarifLandExtension#readme",
+	"icon": "icon.png",
+	"keywords": [
+		"land"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+	"main": "./out/context.js",
+	"name": "sarif-viewer",
+	"private": false,
 	"publishConfig": {
 		"access": "public"
 	},
-	"icon": "icon.png"
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/SarifLandExtension.git"
+	},
+	"scripts": {
+		"Document": "Document 'Source/**/*.ts'",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"prestart": "npm install",
+		"server": "webpack serve --mode development",
+		"start": "webpack --watch --mode development",
+		"test:watch": "mocha --watch",
+		"testcoverage": "nyc mocha"
+	},
+	"type": "module",
+	"version": "0.0.1"
 }
