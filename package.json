@@ -159,7 +159,7 @@
 		"@playform/document": "0.0.6",
 		"@types/follow-redirects": "1.14.4",
 		"@types/mock-require": "2.0.3",
-		"@types/node": "20.12.7",
+		"@types/node": "20.12.10",
 		"@types/node-fetch": "2.6.11",
 		"@types/proxyquire": "1.3.31",
 		"@types/sarif": "2.1.7",
