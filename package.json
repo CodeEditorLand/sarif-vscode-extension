@@ -1,27 +1,7 @@
 {
 	"name": "sarif-viewer",
 	"displayName": "SARIF Viewer",
-	"version": "0.0.1",
-	"private": false,
 	"description": "Adds support for viewing SARIF logs",
-	"keywords": [
-		"land"
-	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/SarifLandExtension#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/SarifLandExtension/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/SarifLandExtension.git"
-	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "🛬 Land —",
-		"email": "Land@PlayForm.Cloud",
-		"url": "HTTPS://Land.PlayForm.Cloud"
-	},
-	"type": "module",
 	"main": "./out/context.js",
 	"scripts": {
 		"Document": "Document 'Source/**/*.ts'",
@@ -156,7 +136,6 @@
 		"@actions/core": "1.10.1",
 		"@actions/github": "6.0.0",
 		"@playform/build": "0.0.7",
-		"@playform/document": "0.0.6",
 		"@types/follow-redirects": "1.14.4",
 		"@types/mock-require": "2.0.3",
 		"@types/node": "20.12.10",
@@ -181,8 +160,5 @@
 	"extensionDependencies": [
 		"vscode.git"
 	],
-	"publishConfig": {
-		"access": "public"
-	},
 	"icon": "icon.png"
 }
