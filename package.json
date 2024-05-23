@@ -144,7 +144,7 @@
 		"@types/tmp": "0.2.6",
 		"@types/url-join": "4.0.3",
 		"@zeit/ncc": "0.22.1",
-		"css-loader": "7.1.1",
+		"css-loader": "7.1.2",
 		"json-source-map": "0.6.1",
 		"nyc": "15.1.0",
 		"proxyquire": "2.1.3",
