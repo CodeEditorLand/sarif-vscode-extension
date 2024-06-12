@@ -108,15 +108,15 @@
 		}
 	},
 	"dependencies": {
-		"@types/diff": "^5.2.1",
-		"chokidar": "^3.6.0",
-		"diff": "^5.2.0",
+		"@types/diff": "5.2.1",
+		"chokidar": "3.6.0",
+		"diff": "5.2.0",
 		"follow-redirects": "1.15.6",
 		"https-proxy-agent": "7.0.4",
 		"mobx": "6.12.3",
 		"node-fetch": "3.3.2",
 		"semver": "7.6.2",
-		"stream-meter": "^1.0.4",
+		"stream-meter": "1.0.4",
 		"tmp": "0.2.3"
 	},
 	"description": "Adds support for viewing SARIF logs",
@@ -134,15 +134,15 @@
 		"@types/tmp": "0.2.6",
 		"@types/url-join": "4.0.3",
 		"@zeit/ncc": "0.22.1",
-		"css-loader": "^7.1.2",
+		"css-loader": "7.1.2",
 		"json-source-map": "0.6.1",
 		"nyc": "17.0.0",
 		"proxyquire": "2.1.3",
-		"sass": "^1.77.4",
-		"sass-loader": "^14.2.1",
+		"sass": "1.77.4",
+		"sass-loader": "14.2.1",
 		"sinon": "18.0.0",
-		"style-loader": "^4.0.0",
-		"ts-loader": "^9.5.1"
+		"style-loader": "4.0.0",
+		"ts-loader": "9.5.1"
 	},
 	"displayName": "SARIF Viewer",
 	"extensionDependencies": [
