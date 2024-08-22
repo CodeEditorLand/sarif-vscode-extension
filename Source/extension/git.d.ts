@@ -1,9 +1,8 @@
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Uri, Event, Disposable, ProviderResult } from 'vscode';
-export { ProviderResult } from 'vscode';
+import type { Disposable, Event, ProviderResult, Uri } from "vscode";
+export { ProviderResult } from "vscode";
 
 export interface Git {
 	readonly path: string;
@@ -13,15 +12,15 @@ export interface InputBox {
 	value: string;
 }
 
-export const enum ForcePushMode {
-	Force,
-	ForceWithLease
+export enum ForcePushMode {
+	Force = 0,
+	ForceWithLease = 1,
 }
 
-export const enum RefType {
-	Head,
-	RemoteHead,
-	Tag
+export enum RefType {
+	Head = 0,
+	RemoteHead = 1,
+	Tag = 2,
 }
 
 export interface Ref {
@@ -65,30 +64,29 @@ export interface Remote {
 	readonly isReadOnly: boolean;
 }
 
-export const enum Status {
-	INDEX_MODIFIED,
-	INDEX_ADDED,
-	INDEX_DELETED,
-	INDEX_RENAMED,
-	INDEX_COPIED,
+export enum Status {
+	INDEX_MODIFIED = 0,
+	INDEX_ADDED = 1,
+	INDEX_DELETED = 2,
+	INDEX_RENAMED = 3,
+	INDEX_COPIED = 4,
 
-	MODIFIED,
-	DELETED,
-	UNTRACKED,
-	IGNORED,
-	INTENT_TO_ADD,
+	MODIFIED = 5,
+	DELETED = 6,
+	UNTRACKED = 7,
+	IGNORED = 8,
+	INTENT_TO_ADD = 9,
 
-	ADDED_BY_US,
-	ADDED_BY_THEM,
-	DELETED_BY_US,
-	DELETED_BY_THEM,
-	BOTH_ADDED,
-	BOTH_DELETED,
-	BOTH_MODIFIED
+	ADDED_BY_US = 10,
+	ADDED_BY_THEM = 11,
+	DELETED_BY_US = 12,
+	DELETED_BY_THEM = 13,
+	BOTH_ADDED = 14,
+	BOTH_DELETED = 15,
+	BOTH_MODIFIED = 16,
 }
 
 export interface Change {
-
 	/**
 	 * Returns either `originalUri` or `renameUri`, depending
 	 * on whether this change is a rename change. When
@@ -129,7 +127,7 @@ export interface LogOptions {
 }
 
 export interface CommitOptions {
-	all?: boolean | 'tracked';
+	all?: boolean | "tracked";
 	amend?: boolean;
 	signoff?: boolean;
 	signCommit?: boolean;
@@ -154,19 +152,23 @@ export interface BranchQuery {
 }
 
 export interface Repository {
-
 	readonly rootUri: Uri;
 	readonly inputBox: InputBox;
 	readonly state: RepositoryState;
 	readonly ui: RepositoryUIState;
 
-	getConfigs(): Promise<{ key: string, value: string }[]>;
+	getConfigs(): Promise<{ key: string; value: string }[]>;
 	getConfig(key: string): Promise<string>;
 	setConfig(key: string, value: string): Promise<string>;
 	getGlobalConfig(key: string): Promise<string>;
 
-	getObjectDetails(treeish: string, path: string): Promise<{ mode: string, object: string, size: number }>;
-	detectObjectType(object: string): Promise<{ mimetype: string, encoding?: string }>;
+	getObjectDetails(
+		treeish: string,
+		path: string,
+	): Promise<{ mode: string; object: string; size: number }>;
+	detectObjectType(
+		object: string,
+	): Promise<{ mimetype: string; encoding?: string }>;
 	buffer(ref: string, path: string): Promise<Buffer>;
 	show(ref: string, path: string): Promise<string>;
 	getCommit(ref: string): Promise<Commit>;
@@ -211,7 +213,12 @@ export interface Repository {
 	fetch(options?: FetchOptions): Promise<void>;
 	fetch(remote?: string, ref?: string, depth?: number): Promise<void>;
 	pull(unshallow?: boolean): Promise<void>;
-	push(remoteName?: string, branchName?: string, setUpstream?: boolean, force?: ForcePushMode): Promise<void>;
+	push(
+		remoteName?: string,
+		branchName?: string,
+		setUpstream?: boolean,
+		force?: ForcePushMode,
+	): Promise<void>;
 
 	blame(path: string): Promise<string>;
 	log(options?: LogOptions): Promise<Commit[]>;
@@ -250,10 +257,15 @@ export interface CredentialsProvider {
 }
 
 export interface PushErrorHandler {
-	handlePushError(repository: Repository, remote: Remote, refspec: string, error: Error & { gitErrorCode: GitErrorCodes }): Promise<boolean>;
+	handlePushError(
+		repository: Repository,
+		remote: Remote,
+		refspec: string,
+		error: Error & { gitErrorCode: GitErrorCodes },
+	): Promise<boolean>;
 }
 
-export type APIState = 'uninitialized' | 'initialized';
+export type APIState = "uninitialized" | "initialized";
 
 export interface PublishEvent {
 	repository: Repository;
@@ -281,7 +293,6 @@ export interface API {
 }
 
 export interface GitExtension {
-
 	readonly enabled: boolean;
 	readonly onDidChangeEnablement: Event<boolean>;
 
@@ -298,40 +309,40 @@ export interface GitExtension {
 	getAPI(version: 1): API;
 }
 
-export const enum GitErrorCodes {
-	BadConfigFile = 'BadConfigFile',
-	AuthenticationFailed = 'AuthenticationFailed',
-	NoUserNameConfigured = 'NoUserNameConfigured',
-	NoUserEmailConfigured = 'NoUserEmailConfigured',
-	NoRemoteRepositorySpecified = 'NoRemoteRepositorySpecified',
-	NotAGitRepository = 'NotAGitRepository',
-	NotAtRepositoryRoot = 'NotAtRepositoryRoot',
-	Conflict = 'Conflict',
-	StashConflict = 'StashConflict',
-	UnmergedChanges = 'UnmergedChanges',
-	PushRejected = 'PushRejected',
-	RemoteConnectionError = 'RemoteConnectionError',
-	DirtyWorkTree = 'DirtyWorkTree',
-	CantOpenResource = 'CantOpenResource',
-	GitNotFound = 'GitNotFound',
-	CantCreatePipe = 'CantCreatePipe',
-	PermissionDenied = 'PermissionDenied',
-	CantAccessRemote = 'CantAccessRemote',
-	RepositoryNotFound = 'RepositoryNotFound',
-	RepositoryIsLocked = 'RepositoryIsLocked',
-	BranchNotFullyMerged = 'BranchNotFullyMerged',
-	NoRemoteReference = 'NoRemoteReference',
-	InvalidBranchName = 'InvalidBranchName',
-	BranchAlreadyExists = 'BranchAlreadyExists',
-	NoLocalChanges = 'NoLocalChanges',
-	NoStashFound = 'NoStashFound',
-	LocalChangesOverwritten = 'LocalChangesOverwritten',
-	NoUpstreamBranch = 'NoUpstreamBranch',
-	IsInSubmodule = 'IsInSubmodule',
-	WrongCase = 'WrongCase',
-	CantLockRef = 'CantLockRef',
-	CantRebaseMultipleBranches = 'CantRebaseMultipleBranches',
-	PatchDoesNotApply = 'PatchDoesNotApply',
-	NoPathFound = 'NoPathFound',
-	UnknownPath = 'UnknownPath',
+export enum GitErrorCodes {
+	BadConfigFile = "BadConfigFile",
+	AuthenticationFailed = "AuthenticationFailed",
+	NoUserNameConfigured = "NoUserNameConfigured",
+	NoUserEmailConfigured = "NoUserEmailConfigured",
+	NoRemoteRepositorySpecified = "NoRemoteRepositorySpecified",
+	NotAGitRepository = "NotAGitRepository",
+	NotAtRepositoryRoot = "NotAtRepositoryRoot",
+	Conflict = "Conflict",
+	StashConflict = "StashConflict",
+	UnmergedChanges = "UnmergedChanges",
+	PushRejected = "PushRejected",
+	RemoteConnectionError = "RemoteConnectionError",
+	DirtyWorkTree = "DirtyWorkTree",
+	CantOpenResource = "CantOpenResource",
+	GitNotFound = "GitNotFound",
+	CantCreatePipe = "CantCreatePipe",
+	PermissionDenied = "PermissionDenied",
+	CantAccessRemote = "CantAccessRemote",
+	RepositoryNotFound = "RepositoryNotFound",
+	RepositoryIsLocked = "RepositoryIsLocked",
+	BranchNotFullyMerged = "BranchNotFullyMerged",
+	NoRemoteReference = "NoRemoteReference",
+	InvalidBranchName = "InvalidBranchName",
+	BranchAlreadyExists = "BranchAlreadyExists",
+	NoLocalChanges = "NoLocalChanges",
+	NoStashFound = "NoStashFound",
+	LocalChangesOverwritten = "LocalChangesOverwritten",
+	NoUpstreamBranch = "NoUpstreamBranch",
+	IsInSubmodule = "IsInSubmodule",
+	WrongCase = "WrongCase",
+	CantLockRef = "CantLockRef",
+	CantRebaseMultipleBranches = "CantRebaseMultipleBranches",
+	PatchDoesNotApply = "PatchDoesNotApply",
+	NoPathFound = "NoPathFound",
+	UnknownPath = "UnknownPath",
 }

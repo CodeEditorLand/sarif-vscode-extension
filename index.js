@@ -7,27 +7,27 @@
 		version: 0,
 		filtersRow: {
 			Level: {
-				"Error": true,
-				"Warning": true,
-				"Note": true,
-				"None": true,
+				Error: true,
+				Warning: true,
+				Note: true,
+				None: true,
 			},
 			Baseline: {
-				"New": true,
-				"Unchanged": true,
-				"Updated": true,
-				"Absent": false,
+				New: true,
+				Unchanged: true,
+				Updated: true,
+				Absent: false,
 			},
 			Suppression: {
 				"Not Suppressed": true,
-				"Suppressed": false,
+				Suppressed: false,
 			},
 		},
 		filtersColumn: {
 			Columns: {
-				"Baseline": false,
-				"Suppression": false,
-				"Rule": false,
+				Baseline: false,
+				Suppression: false,
+				Rule: false,
 			},
 		},
 	};

@@ -3,5 +3,5 @@
 
 // Using `document.hasFocus()` as the indicator of if this panel is active or not.
 export function isActive() {
-    return document.hasFocus();
+	return document.hasFocus();
 }
