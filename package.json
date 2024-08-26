@@ -114,7 +114,7 @@
 		"follow-redirects": "1.15.6",
 		"https-proxy-agent": "7.0.5",
 		"mobx": "6.13.1",
-		"node-fetch": "4.0.0-beta.4",
+		"node-fetch": "3.3.2",
 		"semver": "7.6.3",
 		"stream-meter": "1.0.4",
 		"tmp": "0.2.3"
