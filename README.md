@@ -37,7 +37,7 @@ To focus our efforts, we have dropped some less-used and less-reliable features:
 If these changes adversely affect your project, please
 [let us know](https://github.com/microsoft/sarif-vscode-extension/issues).
 
-## Usage
+## 🛠️ Usage
 
 Install this extension from the
 [Extension Marketplace](https://code.visualstudio.com/docs/editor/extension-gallery)
