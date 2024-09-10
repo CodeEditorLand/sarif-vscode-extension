@@ -1,0 +1,92 @@
+.svDetailsPane {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    
+    .svDetailsBody {
+        overflow-y: overlay;
+
+        &.svDetailsInfo {
+            padding: 12px 22px;
+
+            .svDetailsMessage {
+                margin-bottom: 16px;
+                white-space: pre-line;
+            }
+
+            .svDetailsGrid {
+                display: grid;
+                grid-template-columns: 130px auto;
+                grid-column-gap: 4px;
+                grid-row-gap: 4px;
+                justify-items: start;
+                white-space: pre-line;
+
+                & > * {
+                    &:nth-child(odd) {
+                        width: 100%; // For ellipsis.
+                        color: rgb(139, 139, 139); // svSecondary.
+                    }
+                }
+
+                .svDetailsGridLocations {
+                    display: flex;
+                    flex-direction: column;
+                    *:not(:first-child) { // Rhythm.
+                        margin-top: 4px;
+                    }
+                }
+            }
+        }
+
+        &.svDetailsCodeflowAndStacks {
+            display: grid;
+
+            & > .svList {
+                padding: 12px 0px;
+                scroll-padding: 12px 0;
+                overflow-x: hidden;
+                overflow-y: overlay;
+
+                & > .svListItem {
+                    padding: 0 22px;
+                    display: flex;
+                    align-items: center;
+                    white-space: nowrap;
+
+                    & > * + * { margin-left: 6px; } // Standard
+                    & > :first-child { flex: 1 1; }
+
+                    .svLineNum {
+                        line-height: 16px;
+                        padding: 0 4px;
+                        border-radius: 3px;
+                        background-color: var(--vscode-badge-background);
+                        color: var(--vscode-badge-foreground);
+                    }
+                }
+
+                & {
+                    & > :hover { background-color: var(--vscode-list-hoverBackground); }
+                }
+                &.svSelected {
+                    & > .svItemSelected { background: var(--vscode-list-inactiveSelectionBackground); }
+                }
+                &.svSelected:focus {
+                    outline: none !important;
+                    & > .svItemSelected { background: var(--vscode-list-activeSelectionBackground); }
+                }
+            }
+        }
+
+        .svStack {
+			margin-top: 10px;
+		}
+
+		.svStacksMessage {
+			padding-left: 22px;
+			margin-bottom: -10px;
+		}
+    }
+}
