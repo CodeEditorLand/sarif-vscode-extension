@@ -1,0 +1,10 @@
+.DS_Store
+node_modules
+
+out
+devServer/index.js
+*.vsix
+coverage
+.nyc_output
+ignore/
+.vscode-test
