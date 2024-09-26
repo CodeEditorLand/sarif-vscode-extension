@@ -135,7 +135,7 @@
 		"@actions/github": "6.0.0",
 		"@types/follow-redirects": "1.14.4",
 		"@types/mock-require": "2.0.3",
-		"@types/node": "22.7.2",
+		"@types/node": "22.7.3",
 		"@types/node-fetch": "2.6.11",
 		"@types/proxyquire": "1.3.31",
 		"@types/sarif": "2.1.7",
