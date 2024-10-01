@@ -1,86 +1,101 @@
 .svDetailsPane {
-    box-sizing: border-box;
-    flex: 0 0 auto;
-    display: grid;
-    grid-template-rows: auto 1fr;
-    
-    .svDetailsBody {
-        overflow-y: overlay;
+	box-sizing: border-box;
+	flex: 0 0 auto;
+	display: grid;
+	grid-template-rows: auto 1fr;
 
-        &.svDetailsInfo {
-            padding: 12px 22px;
+	.svDetailsBody {
+		overflow-y: overlay;
 
-            .svDetailsMessage {
-                margin-bottom: 16px;
-                white-space: pre-line;
-            }
+		&.svDetailsInfo {
+			padding: 12px 22px;
 
-            .svDetailsGrid {
-                display: grid;
-                grid-template-columns: 130px auto;
-                grid-column-gap: 4px;
-                grid-row-gap: 4px;
-                justify-items: start;
-                white-space: pre-line;
+			.svDetailsMessage {
+				margin-bottom: 16px;
+				white-space: pre-line;
+			}
 
-                & > * {
-                    &:nth-child(odd) {
-                        width: 100%; // For ellipsis.
-                        color: rgb(139, 139, 139); // svSecondary.
-                    }
-                }
+			.svDetailsGrid {
+				display: grid;
+				grid-template-columns: 130px auto;
+				grid-column-gap: 4px;
+				grid-row-gap: 4px;
+				justify-items: start;
+				white-space: pre-line;
 
-                .svDetailsGridLocations {
-                    display: flex;
-                    flex-direction: column;
-                    *:not(:first-child) { // Rhythm.
-                        margin-top: 4px;
-                    }
-                }
-            }
-        }
+				& > * {
+					&:nth-child(odd) {
+						width: 100%; // For ellipsis.
+						color: rgb(139, 139, 139); // svSecondary.
+					}
+				}
 
-        &.svDetailsCodeflowAndStacks {
-            display: grid;
+				.svDetailsGridLocations {
+					display: flex;
+					flex-direction: column;
+					*:not(:first-child) {
+						// Rhythm.
+						margin-top: 4px;
+					}
+				}
+			}
+		}
 
-            & > .svList {
-                padding: 12px 0px;
-                scroll-padding: 12px 0;
-                overflow-x: hidden;
-                overflow-y: overlay;
+		&.svDetailsCodeflowAndStacks {
+			display: grid;
 
-                & > .svListItem {
-                    padding: 0 22px;
-                    display: flex;
-                    align-items: center;
-                    white-space: nowrap;
+			& > .svList {
+				padding: 12px 0px;
+				scroll-padding: 12px 0;
+				overflow-x: hidden;
+				overflow-y: overlay;
 
-                    & > * + * { margin-left: 6px; } // Standard
-                    & > :first-child { flex: 1 1; }
+				& > .svListItem {
+					padding: 0 22px;
+					display: flex;
+					align-items: center;
+					white-space: nowrap;
 
-                    .svLineNum {
-                        line-height: 16px;
-                        padding: 0 4px;
-                        border-radius: 3px;
-                        background-color: var(--vscode-badge-background);
-                        color: var(--vscode-badge-foreground);
-                    }
-                }
+					& > * + * {
+						margin-left: 6px;
+					} // Standard
+					& > :first-child {
+						flex: 1 1;
+					}
 
-                & {
-                    & > :hover { background-color: var(--vscode-list-hoverBackground); }
-                }
-                &.svSelected {
-                    & > .svItemSelected { background: var(--vscode-list-inactiveSelectionBackground); }
-                }
-                &.svSelected:focus {
-                    outline: none !important;
-                    & > .svItemSelected { background: var(--vscode-list-activeSelectionBackground); }
-                }
-            }
-        }
+					.svLineNum {
+						line-height: 16px;
+						padding: 0 4px;
+						border-radius: 3px;
+						background-color: var(--vscode-badge-background);
+						color: var(--vscode-badge-foreground);
+					}
+				}
 
-        .svStack {
+				& {
+					& > :hover {
+						background-color: var(--vscode-list-hoverBackground);
+					}
+				}
+				&.svSelected {
+					& > .svItemSelected {
+						background: var(
+							--vscode-list-inactiveSelectionBackground
+						);
+					}
+				}
+				&.svSelected:focus {
+					outline: none !important;
+					& > .svItemSelected {
+						background: var(
+							--vscode-list-activeSelectionBackground
+						);
+					}
+				}
+			}
+		}
+
+		.svStack {
 			margin-top: 10px;
 		}
 
@@ -88,5 +103,5 @@
 			padding-left: 22px;
 			margin-bottom: -10px;
 		}
-    }
+	}
 }
