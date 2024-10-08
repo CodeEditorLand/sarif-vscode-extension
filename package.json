@@ -108,7 +108,7 @@
 		}
 	},
 	"dependencies": {
-		"@types/diff": "5.2.2",
+		"@types/diff": "5.2.3",
 		"chokidar": "4.0.1",
 		"diff": "7.0.0",
 		"follow-redirects": "1.15.9",
@@ -125,7 +125,7 @@
 		"@actions/github": "6.0.0",
 		"@types/follow-redirects": "1.14.4",
 		"@types/mock-require": "2.0.3",
-		"@types/node": "22.7.4",
+		"@types/node": "22.7.5",
 		"@types/node-fetch": "2.6.11",
 		"@types/proxyquire": "1.3.31",
 		"@types/sarif": "2.1.7",
