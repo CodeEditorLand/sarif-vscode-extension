@@ -1,15 +1,10 @@
 {
-	"name": "sarif-viewer",
-	"displayName": "SARIF Viewer",
-	"description": "Adds support for viewing SARIF logs",
-	"main": "./out/context.js",
-	"scripts": {
-		"server": "webpack serve --mode development",
-		"prestart": "npm install",
-		"start": "webpack --watch --mode development",
-		"test:watch": "mocha --watch",
-		"testcoverage": "nyc mocha"
-	},
+	"activationEvents": [
+		"onLanguage:json",
+		"onUri",
+		"workspaceContains:.git",
+		"workspaceContains:.sarif"
+	],
 	"contributes": {
 		"commands": [
 			{
@@ -112,12 +107,6 @@
 			]
 		}
 	},
-	"activationEvents": [
-		"onLanguage:json",
-		"onUri",
-		"workspaceContains:.git",
-		"workspaceContains:.sarif"
-	],
 	"dependencies": {
 		"@types/diff": "6.0.0",
 		"chokidar": "4.0.1",
@@ -130,6 +119,7 @@
 		"stream-meter": "1.0.4",
 		"tmp": "0.2.3"
 	},
+	"description": "Adds support for viewing SARIF logs",
 	"devDependencies": {
 		"@actions/core": "1.11.1",
 		"@actions/github": "6.0.0",
@@ -154,8 +144,18 @@
 		"style-loader": "4.0.0",
 		"ts-loader": "9.5.1"
 	},
+	"displayName": "SARIF Viewer",
 	"extensionDependencies": [
 		"vscode.git"
 	],
-	"icon": "icon.png"
+	"icon": "icon.png",
+	"main": "./out/context.js",
+	"name": "sarif-viewer",
+	"scripts": {
+		"prestart": "npm install",
+		"server": "webpack serve --mode development",
+		"start": "webpack --watch --mode development",
+		"test:watch": "mocha --watch",
+		"testcoverage": "nyc mocha"
+	}
 }
