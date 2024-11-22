@@ -65,6 +65,7 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 			commands.executeCommand("workbench.action.reloadWindow");
 		}),
 	);
+
 	const store = new Store();
 
 	// Basing
@@ -86,6 +87,7 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 
 					// Decode the alert API URL and pass it to the load function.
 					const url = decodeURIComponent(param[1]);
+
 					if (url.startsWith("https://advsec.dev.azure.com/")) {
 						await loadAlertSarif(new URL(url));
 					} else {
@@ -107,6 +109,7 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 				["499b84ac-1321-427f-aa17-267ca6975798/.default"],
 				{ createIfNone: true },
 			);
+
 			const accessToken = session?.accessToken;
 
 			if (!accessToken) {
@@ -135,6 +138,7 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 
 					// Load the log into the Viewer.
 					store.logs.push(...(await loadLogs([Uri.file(filePath)])));
+
 					if (store.results.length) panel.show();
 				} catch (error) {
 					outputChannel.appendLine(
@@ -210,7 +214,9 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 		) {
 			watcher.add(logs.map((log) => log.fsPath));
 			store.logs.push(...(await loadLogs(logs, cancellationToken)));
+
 			if (cancellationToken?.isCancellationRequested) return;
+
 			if (store.results.length) {
 				// TODO should we await?
 				void panel.show();
@@ -218,6 +224,7 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 		},
 		async closeLogs(logs: Uri[]) {
 			watcher.unwatch(logs.map((log) => log.fsPath));
+
 			for (const uri of logs) {
 				store.logs.removeFirst((log) => log._uri === uri.toString());
 			}
@@ -261,9 +268,11 @@ function activateDiagnostics(
 ) {
 	const diagsAll = languages.createDiagnosticCollection("SARIF");
 	disposables.push(diagsAll);
+
 	const setDiags = async (doc: TextDocument) => {
 		// When the user opens a doc, VS Code commonly silently opens the associate `*.git`. We are not interested in these events.
 		if (doc.fileName.endsWith(".git")) return;
+
 		if (doc.uri.scheme === "output") return; // Example "output:extension-output-MS-SarifVSCode.sarif-viewer-%231-Sarif%20Viewer"
 		if (doc.uri.scheme === "vscode") return; // Example "vscode:scm/git/scm0/input?rootUri..."
 		if (doc.uri.scheme === "comment") return; // Represents a comment thread (from the VS Code Comments API)
@@ -275,12 +284,15 @@ function activateDiagnostics(
 			}
 			return baser.translateLocalToArtifact(doc.uri);
 		})();
+
 		const severities = {
 			error: DiagnosticSeverity.Error,
 			warning: DiagnosticSeverity.Warning,
 		} as Record<string, DiagnosticSeverity>;
+
 		const matchingResults = store.results.filter((result) => {
 			const uri = result._uriContents ?? result._uri;
+
 			return uri === artifactUri;
 		});
 
@@ -292,6 +304,7 @@ function activateDiagnostics(
 
 		if (!matchingResults.length) {
 			diagsAll.set(doc.uri, []);
+
 			return;
 		}
 
@@ -300,6 +313,7 @@ function activateDiagnostics(
 			store.analysisInfo?.commit_sha,
 			currentDoc,
 		);
+
 		const diffBlocks = originalDoc
 			? diffChars(originalDoc.getText(), currentDoc.getText())
 			: [];
@@ -344,6 +358,7 @@ function activateWatchDocuments(
 ) {
 	const addLog = async (doc: TextDocument) => {
 		if (!doc.fileName.match(/\.sarif$/i)) return;
+
 		if (store.logs.some((log) => log._uri === doc.uri.toString())) return; // TODO: Potentially redundant, need to verify.
 		store.logs.push(...(await loadLogs([doc.uri])));
 		panel.show();
@@ -364,18 +379,26 @@ function activateVirtualDocuments(disposables: Disposable[], store: Store) {
 			provideTextDocumentContent: (uri, token) => {
 				const [logUriEncoded, runIndex, artifactIndex] =
 					uri.path.split("/");
+
 				const logUri = decodeURIComponent(logUriEncoded);
+
 				const artifact = store.logs.find((log) => log._uri === logUri)
 					?.runs[+runIndex]?.artifacts?.[+artifactIndex];
+
 				const contents = artifact?.contents;
+
 				if (contents?.rendered?.markdown)
 					return contents?.rendered?.markdown;
+
 				if (contents?.rendered?.text) return contents?.rendered?.text;
+
 				if (contents?.text) return contents?.text;
+
 				if (contents?.binary) {
 					const lines = Buffer.from(contents?.binary, "base64")
 						.toString("hex")
 						.match(/.{1,32}/g);
+
 					return (
 						lines?.reduce((sum, line, i) => {
 							const lineNo = ((i + 128) * 16)
@@ -389,6 +412,7 @@ function activateVirtualDocuments(disposables: Disposable[], store: Store) {
 									/(\x09|\x0A|\x0B|\x0C|\x0D|\x1B)/g,
 									"?",
 								);
+
 							return `${sum}${lineNo}  ${line
 								.toUpperCase()
 								.match(/.{1,2}/g)
@@ -397,6 +421,7 @@ function activateVirtualDocuments(disposables: Disposable[], store: Store) {
 					);
 				}
 				token.isCancellationRequested = true;
+
 				return "";
 			},
 		}),
@@ -419,7 +444,9 @@ function activateSelectionSync(
 			// Length 0  - I have yet to see this in practice.
 			// Length 2+ - User is likely editing and does not want to be distracted by selection changes.
 			if (selections.length !== 1) return;
+
 			const selection = selections[0];
+
 			const position = selection.isReversed
 				? selection.start
 				: selection.end; // The blinking caret.
@@ -427,10 +454,13 @@ function activateSelectionSync(
 			const diagnostics = languages.getDiagnostics(
 				textEditor.document.uri,
 			);
+
 			const diagnostic = diagnostics.find((diagnostic) =>
 				diagnostic.range.contains(position),
 			) as ResultDiagnostic | undefined;
+
 			const result = diagnostic?.result;
+
 			if (!result) return;
 
 			panel.select(result);

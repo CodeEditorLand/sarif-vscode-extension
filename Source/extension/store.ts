@@ -20,6 +20,7 @@ export class Store {
 	@observable resultsFixed = [] as string[]; // JSON string of ResultId. TODO: Migrate to set.
 	@computed get results() {
 		const runs = this.logs.map((log) => log.runs).flat();
+
 		return runs
 			.map((run) => run.results ?? [])
 			.flat()
@@ -32,6 +33,7 @@ export class Store {
 		const fileAndUris = this.logs
 			.map((log) => [...log._distinct.entries()])
 			.flat();
+
 		return mapDistinct(fileAndUris);
 	}
 
@@ -47,6 +49,7 @@ export class Store {
 			change.added = change.added.filter((log) =>
 				this.logs.every((existing) => existing._uri !== log._uri),
 			);
+
 			return objChange;
 		});
 	}

@@ -30,6 +30,7 @@ export function activateDecorations(
 	const decorationTypeCallout = window.createTextEditorDecorationType({
 		after: { color: new ThemeColor("problemsWarningIcon.foreground") },
 	});
+
 	const decorationTypeHighlight = window.createTextEditorDecorationType({
 		border: "1px",
 		borderStyle: "solid",
@@ -45,9 +46,11 @@ export function activateDecorations(
 				const diagnostic = context.diagnostics[0] as
 					| ResultDiagnostic
 					| undefined;
+
 				if (!diagnostic) return undefined;
 
 				const result = diagnostic?.result;
+
 				if (!result) return undefined; // Don't clear the decorations. See `activeResultId` comments.
 
 				activeResultId.set(JSON.stringify(result._id)); // Stringify for comparability.
@@ -67,12 +70,14 @@ export function activateDecorations(
 	//    We don't trigger on log added as the user would need to select a result first.
 	async function update() {
 		const resultId = activeResultId.get();
+
 		if (!resultId) {
 			// This code path is only expected if `activeResultId` has not be set yet. See `activeResultId` comments.
 			// Thus we are not concerned with clearing any previously rendered decorations.
 			return;
 		}
 		const result = findResult(store.logs, JSON.parse(resultId) as ResultId);
+
 		if (!result) {
 			// Only in rare cases does `findResult` fail to resolve a `resultId` into a `result`.
 			// Such as if a log were closed after an `activeResultId` was set.
@@ -81,6 +86,7 @@ export function activateDecorations(
 
 		for (const editor of window.visibleTextEditors) {
 			const currentDoc = editor.document;
+
 			const locations =
 				result.codeFlows?.[0]?.threadFlows?.[0]?.locations ?? [];
 
@@ -89,6 +95,7 @@ export function activateDecorations(
 					result,
 					tfl.location?.physicalLocation?.artifactLocation,
 				);
+
 				return (
 					(await baser.translateLocalToArtifact(currentDoc.uri)) ===
 					artifactUriString
@@ -99,9 +106,11 @@ export function activateDecorations(
 				store.analysisInfo?.commit_sha,
 				currentDoc,
 			);
+
 			const diffBlocks = originalDoc
 				? diffChars(originalDoc.getText(), currentDoc.getText())
 				: [];
+
 			const ranges = locationsInDoc.map((tfl) =>
 				driftedRegionToSelection(
 					diffBlocks,
@@ -116,20 +125,26 @@ export function activateDecorations(
 				// Sub-scope for callouts.
 				const messages = locationsInDoc.map((tfl) => {
 					const text = tfl.location?.message?.text;
+
 					return `Step ${locations.indexOf(tfl) + 1}${text ? `: ${text}` : ""}`;
 				});
+
 				const rangesEnd = ranges.map((range) => {
 					const endPos = currentDoc.lineAt(range.end.line).range.end;
+
 					return new Range(endPos, endPos);
 				});
+
 				const rangesEndAdj = rangesEnd.map((range) => {
 					const tabCount =
 						currentDoc.lineAt(range.end.line).text.match(/\t/g)
 							?.length ?? 0;
+
 					const tabCharAdj =
 						tabCount * ((editor.options.tabSize as number) - 1); // Intra-character tabs are counted wrong.
 					return range.end.character + tabCharAdj;
 				});
+
 				const maxRangeEnd = Math.max(...rangesEndAdj) + 2; // + for Padding
 				const decorCallouts = rangesEnd.map((range, i) => ({
 					range,
@@ -150,6 +165,7 @@ export function activateDecorations(
 	disposables.push({
 		dispose: observe(store.logs, (change) => {
 			const { removed } = change as unknown as IArraySplice<Log>;
+
 			if (!removed.length) return;
 			window.visibleTextEditors.forEach((editor) => {
 				editor.setDecorations(decorationTypeCallout, []);

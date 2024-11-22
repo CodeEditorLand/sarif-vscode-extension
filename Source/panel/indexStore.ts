@@ -41,8 +41,10 @@ export class IndexStore {
 	) {
 		this.filtersRow = state.filtersRow;
 		this.filtersColumn = state.filtersColumn;
+
 		const setState = async () => {
 			const { filtersRow, filtersColumn } = this;
+
 			const state = {
 				filtersRow: toJS(filtersRow),
 				filtersColumn: toJS(filtersColumn),
@@ -67,6 +69,7 @@ export class IndexStore {
 			change.added.forEach((log: Log) => {
 				augmentLog(log, this.driverlessRules, workspaceUri);
 			});
+
 			return change;
 		});
 
@@ -90,7 +93,9 @@ export class IndexStore {
 
 		autorun(() => {
 			const selectedRow = this.selection.get();
+
 			const result = selectedRow instanceof RowItem && selectedRow.item;
+
 			if (!result?._uri) return; // Bail on no result or location-less result.
 			postSelectArtifact(result, result.locations?.[0]?.physicalLocation);
 		});
@@ -127,6 +132,7 @@ export class IndexStore {
 	@observable filtersColumn = filtersColumn;
 	@action public clearFilters() {
 		this.keywords = "";
+
 		for (const column in this.filtersRow) {
 			for (const value in this.filtersRow[column]) {
 				this.filtersRow[column][value] = "visible";
@@ -160,6 +166,7 @@ export class IndexStore {
 				this.selection.set(undefined);
 			} else {
 				const result = findResult(this.logs, id);
+
 				if (!result) throw new Error("Unexpected: result undefined");
 				this.selectedTab.get().store?.select(result);
 			}
@@ -168,6 +175,7 @@ export class IndexStore {
 		if (command === "spliceLogs") {
 			for (const uri of event.data.removed) {
 				const i = this.logs.findIndex((log) => log._uri === uri);
+
 				if (i >= 0) this.logs.splice(i, 1);
 			}
 			for (const { text, uri, uriUpgraded, webviewUri } of event.data
@@ -212,12 +220,16 @@ export async function postSelectArtifact(
 	if (!isActive()) return;
 
 	if (!ploc) return;
+
 	const log = result._log;
+
 	const logUri = log._uri;
+
 	const [uri, uriBase, uriContent] = parseArtifactLocation(
 		result,
 		ploc?.artifactLocation,
 	);
+
 	const region = ploc?.region;
 	await vscode.postMessage({
 		command: "select",

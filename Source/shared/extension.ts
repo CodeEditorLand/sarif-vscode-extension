@@ -40,6 +40,7 @@ declare global {
 		value: function (predicate: (item: any) => boolean) {
 			// Unable to express (item: T) so using (item: any).
 			const i = this.findIndex(predicate);
+
 			return i >= 0 && this.splice(i, 1).pop();
 		},
 	});
@@ -50,14 +51,20 @@ Array.prototype.sortBy = function <T>(
 ) {
 	this.sort((a, b) => {
 		const aa = selector(a);
+
 		const bb = selector(b);
+
 		const invert = descending ? -1 : 1;
+
 		if (typeof aa === "string" && typeof bb === "string")
 			return invert * aa.localeCompare(bb);
+
 		if (typeof aa === "number" && typeof bb === "number")
 			return invert * (aa - bb);
+
 		return 0;
 	});
+
 	return this;
 };
 

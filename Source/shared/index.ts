@@ -18,6 +18,7 @@ export type ResultId = [string, number, number];
 
 export function findResult(logs: Log[], id: ResultId): Result | undefined {
 	const [logUri, runIndex, resultIndex] = id;
+
 	return logs.find((log) => log._uri === logUri)?.runs[runIndex]?.results?.[
 		resultIndex
 	];
@@ -59,15 +60,19 @@ declare module "sarif" {
 // console.log(format(`'{0}' was not evaluated for check '{2}' as the analysis is not relevant based on observed metadata: {1}.`, ['x', 'y', 'z']))
 function format(template: string | undefined, args?: string[]) {
 	if (!template) return undefined;
+
 	if (!args) return template;
+
 	return template.replace(/{(\d+)}/g, (_, group) => args[group]);
 }
 
 export function mapDistinct(pairs: [string, string][]): Map<string, string> {
 	const distinct = new Map<string, string | undefined>();
+
 	for (const [key, value] of pairs) {
 		if (distinct.has(key)) {
 			const otherValue = distinct.get(key);
+
 			if (value !== otherValue) distinct.set(key, undefined);
 		} else {
 			distinct.set(key, value);
@@ -86,6 +91,7 @@ export function augmentLog(
 ) {
 	if (log._augmented) return;
 	log._augmented = true;
+
 	const fileAndUris = [] as [string, string][];
 	log.runs?.forEach((run, runIndex) => {
 		// types.d.ts is wrong, per spec `runs` is allowed to be null.
@@ -96,10 +102,12 @@ export function augmentLog(
 		// If we don't do this, then the same ruleId may generate multiple `Rule` objects.
 		// When instance comparing those `Rule` objects, they would appear to be different rules. We don't want that.
 		const driverlessRules = rules ?? new Map<string, ReportingDescriptor>();
+
 		function getDriverlessRule(
 			id: string | undefined,
 		): ReportingDescriptor | undefined {
 			if (!id) return undefined;
+
 			if (!driverlessRules.has(id)) {
 				driverlessRules.set(id, { id });
 			}
@@ -112,6 +120,7 @@ export function augmentLog(
 			result._id = [log._uri, runIndex, resultIndex];
 
 			const ploc = result.locations?.[0]?.physicalLocation;
+
 			const [uri, _, uriContents] = parseArtifactLocation(
 				result,
 				ploc?.artifactLocation,
@@ -122,7 +131,9 @@ export function augmentLog(
 				result._uri?.replace(workspaceUri ?? "", "") ?? ""; // For grouping, Empty works more predictably than undefined
 			{
 				const parts = uri?.split("/");
+
 				const file = parts?.pop();
+
 				if (file && uri) {
 					fileAndUris.push([file, uri.replace(/^\//, "")]); // Normalize leading slashes.
 				}
@@ -178,9 +189,11 @@ export function effectiveLevel(result: Result): Result.level {
 		case "notApplicable":
 		case "pass":
 			return "note";
+
 		case "open":
 		case "review":
 			return "warning";
+
 		case "fail":
 		default:
 			return (
@@ -210,11 +223,14 @@ Run.artifacts: Art[]
 */
 export function parseLocation(result: Result, loc?: Location) {
 	const message = loc?.message?.text;
+
 	const [uri, _, uriContent] = parseArtifactLocation(
 		result,
 		loc?.physicalLocation?.artifactLocation,
 	);
+
 	const region = loc?.physicalLocation?.region;
+
 	return { message, uri, uriContent, region };
 }
 
@@ -224,15 +240,20 @@ export function parseArtifactLocation(
 	anyArtLoc: ArtifactLocation | undefined,
 ) {
 	if (!anyArtLoc) return [undefined, undefined, undefined];
+
 	const runArt = result._run.artifacts?.[anyArtLoc.index ?? -1];
+
 	const runArtLoc = runArt?.location;
+
 	const runArtCon = runArt?.contents;
+
 	const uri = anyArtLoc.uri ?? runArtLoc?.uri ?? ""; // If index (§3.4.5) is absent, uri SHALL be present.
 
 	// Currently not supported: recursive resolution of uriBaseId.
 	// Note: While an uriBase often results in an absolute URI, there is no guarantee.
 	// Note: While an uriBase often represents the project root, there is no guarantee.
 	const uriBaseId = anyArtLoc.uriBaseId ?? runArtLoc?.uriBaseId;
+
 	const uriBase = uriBaseId
 		? result._run.originalUriBaseIds?.[uriBaseId]?.uri
 		: undefined;
@@ -247,11 +268,13 @@ export function parseArtifactLocation(
 					`sarif:${encodeURIComponent(result._log._uri)}/${result._run._index}/${anyArtLoc.index}/${uri?.file ?? "Untitled"}`,
 				)
 			: undefined;
+
 	return [uri, uriBase, uriContents];
 }
 
 export function decodeFileUri(uriString: string) {
 	const uri = URI.parse(uriString, false);
+
 	if (uri.scheme === "file") {
 		return uri.fsPath;
 	}

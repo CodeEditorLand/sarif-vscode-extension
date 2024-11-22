@@ -38,6 +38,7 @@ function getHttpsProxyAgent() {
 		process.env.https_proxy ||
 		process.env.HTTP_PROXY ||
 		process.env.http_proxy;
+
 	if (!proxy) {
 		// If no proxy is defined, we're done
 		return undefined;
@@ -59,13 +60,16 @@ function getHttpsProxyAgent() {
 }
 
 export const updateChannelConfigSection = "updateChannel";
+
 const extensionName = "sarif-viewer";
+
 let updateInProgress = false;
 
 function isUpdateEnabled() {
 	const updateChannel = workspace
 		.getConfiguration(extensionName)
 		.get<string>(updateChannelConfigSection, "Default");
+
 	return updateChannel === "Insiders";
 }
 
@@ -74,11 +78,14 @@ function isUpdateEnabled() {
 export async function update() {
 	if (updateInProgress) return false;
 	updateInProgress = true;
+
 	if (!isUpdateEnabled()) return false;
 
 	const extensionFullName = `MS-SarifVSCode.${extensionName}`;
+
 	const installedVersion =
 		extensions.getExtension(extensionFullName)!.packageJSON.version;
+
 	const agent = getHttpsProxyAgent();
 
 	const success = await (async () => {
@@ -88,11 +95,15 @@ export async function update() {
 				"https://api.github.com/repos/Microsoft/sarif-vscode-extension/releases",
 				{ agent },
 			);
+
 			if (releasesResponse.status !== 200) return false;
+
 			const releases = (await releasesResponse.json()) as GitHubRelease[];
+
 			const release = releases.find((release) =>
 				gt(release.tag_name, installedVersion),
 			);
+
 			if (!release) return false;
 
 			// 2) Find the right asset from the release assets.
@@ -100,11 +111,14 @@ export async function update() {
 			const asset = release.assets.find(
 				(asset) => asset.content_type === "application/vsix",
 			);
+
 			if (!asset) return false;
 
 			// 3) Download the VSIX to temp.
 			const url = new URL(asset.browser_download_url);
+
 			const vsixFile = tmpNameSync({ postfix: ".vsix" });
+
 			const stream = fs.createWriteStream(vsixFile);
 			await new Promise((resolve, reject) => {
 				const request = redirectableHttps.get(
@@ -131,10 +145,12 @@ export async function update() {
 				"workbench.extensions.installExtension",
 				Uri.file(vsixFile),
 			);
+
 			const response = await window.showInformationMessage(
 				`A new version of the SARIF Viewer (${release.tag_name}) has been installed. Reload to take affect.`,
 				"Reload now",
 			);
+
 			if (response) {
 				await commands.executeCommand("workbench.action.reloadWindow");
 			}
@@ -145,5 +161,6 @@ export async function update() {
 	})();
 
 	updateInProgress = false;
+
 	return success;
 }

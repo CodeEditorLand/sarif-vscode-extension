@@ -54,6 +54,7 @@ export class Panel {
 		observe(store.logs, (change) => {
 			const { type, removed, added } =
 				change as unknown as IArraySplice<Log>;
+
 			if (type !== "splice")
 				throw new Error("Only splice allowed on store.logs.");
 			this.spliceLogs(removed, added);
@@ -61,12 +62,14 @@ export class Panel {
 		observe(store.resultsFixed, (change) => {
 			const { type, removed, added } =
 				change as unknown as IArraySplice<string>;
+
 			if (type !== "splice")
 				throw new Error("Only splice allowed on store.resultFixes.");
 			this.spliceResultsFixed(removed, added);
 		});
 		autorun(() => {
 			const count = store.results.length;
+
 			if (!this.panel) return;
 			this.panel.title = `${count} ${this.title}${count === 1 ? "" : "s"}`;
 		});
@@ -81,10 +84,12 @@ export class Panel {
 	public async show() {
 		if (this.panel) {
 			if (!this.panel.active) this.panel.reveal(undefined, true);
+
 			return;
 		}
 
 		const { context, basing, store } = this;
+
 		const { webview } = (this.panel = window.createWebviewPanel(
 			"sarif",
 			`${this.title}s`,
@@ -104,7 +109,9 @@ export class Panel {
 		this.panel.onDidDispose(() => (this.panel = null));
 
 		const srcPanel = Uri.file(`${context.extensionPath}/out/panel.js`);
+
 		const srcInit = Uri.file(`${context.extensionPath}/out/init.js`);
+
 		const defaultState = {
 			version: 0,
 			filtersRow,
@@ -142,12 +149,14 @@ export class Panel {
 		webview.onDidReceiveMessage(
 			async (message) => {
 				if (!message) return;
+
 				switch (message.command as CommandPanelToExtension) {
 					case "load": {
 						// Extension sends Panel an initial set of logs.
 						await this.panel?.webview.postMessage(
 							this.createSpliceLogsMessage([], store.logs),
 						);
+
 						break;
 					}
 					case "open": {
@@ -156,18 +165,22 @@ export class Panel {
 							defaultUri: workspace.workspaceFolders?.[0]?.uri,
 							filters: { "SARIF files": ["sarif", "json"] },
 						});
+
 						if (!uris) return;
 						store.logs.push(...(await loadLogs(uris)));
+
 						break;
 					}
 					case "closeLog": {
 						store.logs.removeFirst(
 							(log) => log._uri === message.uri,
 						);
+
 						break;
 					}
 					case "closeAllLogs": {
 						store.logs.splice(0);
+
 						break;
 					}
 					case "select": {
@@ -177,37 +190,45 @@ export class Panel {
 							uriBase: string | undefined;
 							region: Region;
 						};
+
 						const [_, runIndex] = message.id as ResultId;
 
 						const log = store.logs.find(
 							(log) => log._uri === logUri,
 						);
+
 						if (!log) return;
 
 						const versionControlProvenance =
 							log.runs[runIndex].versionControlProvenance;
+
 						const validatedUri =
 							await basing.translateArtifactToLocal(
 								uri,
 								uriBase,
 								versionControlProvenance,
 							);
+
 						if (!validatedUri) return;
 						await this.selectLocal(logUri, validatedUri, region);
+
 						break;
 					}
 					case "selectLog": {
 						const [logUri, runIndex, resultIndex] =
 							message.id as ResultId;
+
 						const log = store.logs.find(
 							(log) => log._uri === logUri,
 						);
+
 						if (!log) return;
 
 						const logUriUpgraded = Uri.parse(
 							log._uriUpgraded ?? log._uri,
 							true,
 						);
+
 						if (!log._jsonMap) {
 							const file = fs
 								.readFileSync(logUriUpgraded.fsPath, "utf8") // Assume scheme file.
@@ -221,6 +242,7 @@ export class Panel {
 							log._jsonMap[
 								`/runs/${runIndex}/results/${resultIndex}`
 							];
+
 						const resultRegion = {
 							startLine: value.line,
 							startColumn: value.column,
@@ -232,6 +254,7 @@ export class Panel {
 							logUriUpgraded,
 							resultRegion,
 						);
+
 						break;
 					}
 					case "setState": {
@@ -239,15 +262,18 @@ export class Panel {
 							"view",
 							defaultState,
 						);
+
 						const { state } = message;
 						await Store.globalState.update(
 							"view",
 							Object.assign(oldState, JSON.parse(state)),
 						);
+
 						break;
 					}
 					case "refresh": {
 						await store.remoteAnalysisInfoUpdated++;
+
 						break;
 					}
 					case "removeResultFixed": {
@@ -255,6 +281,7 @@ export class Panel {
 						store.resultsFixed.removeFirst(
 							(id) => id === idToRemove,
 						);
+
 						break;
 					}
 					default:
@@ -288,6 +315,7 @@ export class Panel {
 		// 3) Then `revealRange` (see below) will start another "thread" of selection sync.
 		// 4) The rapid succession causes a "reverberation" where the selection gets stuck jumping between both results.
 		this.store.disableSelectionSync = true;
+
 		const editor = await window.showTextDocument(
 			currentDoc,
 			ViewColumn.One,
@@ -301,6 +329,7 @@ export class Panel {
 			this.store.analysisInfo?.commit_sha,
 			currentDoc,
 		);
+
 		const diffBlocks = originalDoc
 			? diffChars(originalDoc.getText(), currentDoc.getText())
 			: [];
@@ -324,7 +353,9 @@ export class Panel {
 
 	public selectByIndex(uri: Uri, runIndex: number, resultIndex: number) {
 		const log = this.store.logs.find((log) => log._uri === uri.toString());
+
 		const result = log?.runs?.[runIndex]?.results?.[resultIndex];
+
 		if (!result) return;
 
 		this.select(result);

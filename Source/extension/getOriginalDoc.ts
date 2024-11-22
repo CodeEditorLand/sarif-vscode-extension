@@ -17,20 +17,26 @@ export function getRepositoryForUri(
 	uri: string,
 ): Repository | undefined {
 	const primaryRepo = getPrimaryRepository(git);
+
 	const submoduleRepos = git.repositories.filter(
 		(repo) => repo.rootUri.toString() !== primaryRepo?.rootUri.toString(),
 	);
+
 	const uriIsInSubmodule = submoduleRepos.some((repo) =>
 		uri.startsWith(repo.rootUri.toString()),
 	);
+
 	if (uriIsInSubmodule) return undefined;
+
 	return primaryRepo;
 }
 
 // Used to force the original doc line endings to match the current doc.
 function coerceLineEndings(text: string, eol: EndOfLine) {
 	if (eol === EndOfLine.LF) return text.replace(/\r\n/g, "\n");
+
 	if (eol === EndOfLine.CRLF) return text.replace(/\n/g, "\r\n");
+
 	return text;
 }
 
@@ -42,6 +48,7 @@ export async function getOriginalDoc(
 	if (!commitSha) return undefined;
 
 	const git = await getInitializedGitApi();
+
 	if (!git) return undefined;
 
 	const repo = getRepositoryForUri(git, currentDoc.uri.toString());
@@ -49,6 +56,7 @@ export async function getOriginalDoc(
 	if (!repo) return undefined;
 
 	const scannedFile = await repo.show(commitSha, currentDoc.uri.fsPath);
+
 	return new StringTextDocument(
 		coerceLineEndings(scannedFile, currentDoc.eol),
 	);

@@ -18,8 +18,11 @@ function regionToSelection(doc: TextDocumentLike, region: Region | undefined) {
 	if (byteOffset !== undefined) {
 		// Assumes Hex editor view.
 		const byteLength = region.byteLength ?? 0;
+
 		const startColRaw = byteOffset % 16;
+
 		const endColRaw = (byteOffset + byteLength) % 16;
+
 		return new Selection(
 			Math.floor(byteOffset / 16),
 			10 + startColRaw + Math.floor(startColRaw / 2),
@@ -66,6 +69,7 @@ export function driftedRegionToSelection(
 	if (originalDoc === undefined) return regionToSelection(currentDoc, region);
 
 	const originalRange = regionToSelection(originalDoc, region);
+
 	if (originalRange.isReversed) console.warn("REVERSED");
 
 	const drift = measureDrift(
@@ -73,6 +77,7 @@ export function driftedRegionToSelection(
 		originalDoc.offsetAt(originalRange.start),
 		originalDoc.offsetAt(originalRange.end),
 	);
+
 	return drift === undefined
 		? new Selection(currentDoc.positionAt(0), currentDoc.positionAt(0))
 		: new Selection(

@@ -22,6 +22,7 @@ async function workspaceHasDistinctFilename(
 	filename: string,
 ): Promise<Uri | undefined> {
 	const distinctFileName = workspaceDistinctFilenameCache.get(filename);
+
 	if (distinctFileName !== undefined) {
 		return distinctFileName;
 	}
@@ -40,6 +41,7 @@ async function workspaceHasDistinctFilename(
 
 	if (matches.length === 1) {
 		workspaceDistinctFilenameCache.set(filename, matches[0]);
+
 		return matches[0];
 	}
 
@@ -56,7 +58,9 @@ workspace.onDidCreateFiles(async (event) => {
 workspace.onDidRenameFiles(async (event) => {
 	for (const file of event.files) {
 		const oldFilename = path.basename(file.oldUri.path);
+
 		const newFilename = path.basename(file.newUri.path);
+
 		if (oldFilename !== newFilename) {
 			workspaceDistinctFilenameCache.delete(oldFilename);
 		}
@@ -76,7 +80,9 @@ export class UriRebaser {
 	private basesArtifactToLocal = new Map<string, string>(); // <artifactUri, localUri>
 	private updateBases(artifact: string, local: Uri) {
 		const localPath = local.toString();
+
 		let commonLength = 0;
+
 		while (
 			commonLength < artifact.length &&
 			commonLength < localPath.length &&
@@ -119,6 +125,7 @@ export class UriRebaser {
 			// but obviously can't always be true.
 			// Over-assuming the localUri.name is distinct. There could be 2+ open docs with the same name.
 			const noWorkspace = !workspace.workspaceFolders?.length;
+
 			if (
 				(noWorkspace || (await workspaceHasDistinctFilename(file))) &&
 				this.store.distinctArtifactNames.has(file)
@@ -150,10 +157,13 @@ export class UriRebaser {
 		const validateUri = async (): Promise<Uri | undefined> => {
 			// Cache
 			const artifact = this.validatedUrisArtifactToLocal.get(artifactUri);
+
 			if (artifact) return artifact;
 
 			const rxUriScheme = /^([^:/?#]+?):/;
+
 			const isRelative = !rxUriScheme.test(artifactUri);
+
 			if (isRelative) {
 				// §3.4.4:
 				// If the end user has configured the SARIF consumer with a value for the uriBaseId...
@@ -163,8 +173,10 @@ export class UriRebaser {
 						Uri.parse(uriBase, true),
 						artifactUri,
 					);
+
 					if (await uriExists(localUri)) {
 						this.updateValidatedUris(artifactUri, localUri);
+
 						return localUri;
 					}
 				}
@@ -176,8 +188,10 @@ export class UriRebaser {
 						Uri.parse(uriBase, true),
 						artifactUri,
 					);
+
 					if (await uriExists(localUri)) {
 						this.updateValidatedUris(artifactUri, localUri);
+
 						return localUri;
 					}
 				}
@@ -189,16 +203,20 @@ export class UriRebaser {
 				const workspaceUri = workspace.workspaceFolders?.[0]?.uri; // TODO: Handle multiple workspaces.
 				if (workspaceUri) {
 					const localUri = Uri.joinPath(workspaceUri, artifactUri);
+
 					if (await uriExists(localUri)) {
 						this.updateValidatedUris(artifactUri, localUri);
+
 						return localUri;
 					}
 				}
 			} else {
 				// File System Exist
 				const localUri = Uri.parse(artifactUri);
+
 				if (await uriExists(localUri)) {
 					this.updateValidatedUris(artifactUri, localUri);
+
 					return localUri;
 				}
 			}
@@ -212,15 +230,19 @@ export class UriRebaser {
 					artifactUri.replace(artifactBase, localBase),
 					false,
 				);
+
 				if (await uriExists(localUri)) {
 					this.updateValidatedUris(artifactUri, localUri);
+
 					return localUri;
 				}
 			}
 
 			// Distinct Project Items
 			const { file } = artifactUri;
+
 			const distinctFilename = await workspaceHasDistinctFilename(file);
+
 			if (
 				distinctFilename &&
 				this.store.distinctArtifactNames.has(file)
@@ -228,15 +250,18 @@ export class UriRebaser {
 				const localUri = distinctFilename;
 				this.updateValidatedUris(artifactUri, localUri);
 				this.updateBases(artifactUri, localUri);
+
 				return localUri;
 			}
 
 			// Open Docs
 			for (const doc of workspace.textDocuments) {
 				const localUri = doc.uri;
+
 				if (localUri.toString().file !== artifactUri.file) continue;
 				this.updateValidatedUris(artifactUri, localUri);
 				this.updateBases(artifactUri, localUri);
+
 				return localUri;
 			}
 
@@ -244,12 +269,14 @@ export class UriRebaser {
 		};
 
 		let validatedUri = await validateUri();
+
 		if (!validatedUri && !this.activeInfoMessages.has(artifactUri)) {
 			// download from internet by changeset
 			if (versionControlProvenance !== undefined) {
 				const url = new URL(
 					`${versionControlProvenance[0].repositoryUri}/${versionControlProvenance[0].revisionId}/${artifactUri.startsWith("file://") ? artifactUri.substring(7) : artifactUri}`,
 				);
+
 				if (url.hostname === "github.com") {
 					url.hostname = "raw.githubusercontent.com";
 				}
@@ -258,7 +285,9 @@ export class UriRebaser {
 				const root = os.tmpdir().endsWith(path.sep)
 					? os.tmpdir()
 					: `${os.tmpdir()}${path.sep}`;
+
 				const fileName = path.join(root, url.pathname).normalize();
+
 				if (!fileName.startsWith(root)) return undefined;
 
 				const fileUrl = Uri.file(fileName);
@@ -267,6 +296,7 @@ export class UriRebaser {
 
 				if (url.protocol === "https:") {
 					let choice: string | undefined = "Yes";
+
 					const alwaysMsg = `Always from ${url.hostname}`;
 					// check if user marked this site as trusted to download always
 					if (!this.trustedSites.includes(url.hostname)) {
@@ -306,12 +336,15 @@ export class UriRebaser {
 
 						try {
 							const response = await fetch(url);
+
 							const buffer = await response.buffer();
+
 							const dir = path.dirname(fileName);
 							await mkdirRecursive(dir);
 							await fs.promises.writeFile(fileName, buffer);
 
 							this.updateBases(artifactUri, fileUrl);
+
 							return fileUrl;
 						} catch (error) {
 							await window.showErrorMessage(
@@ -324,28 +357,35 @@ export class UriRebaser {
 			}
 
 			this.activeInfoMessages.add(artifactUri);
+
 			const choice = await window.showInformationMessage(
 				`Unable to find '${artifactUri.file}'`,
 				"Locate...",
 			);
 			this.activeInfoMessages.delete(artifactUri);
+
 			if (choice) {
 				const extension = artifactUri.match(/\.([\w]+)$/)?.[1] ?? "";
+
 				const files = await window.showOpenDialog({
 					defaultUri: workspace.workspaceFolders?.[0]?.uri,
 					filters: { "Matching file": [extension] },
 					// Consider allowing folders.
 				});
+
 				if (!files?.length) return undefined; // User cancelled.
 
 				this.updateBases(artifactUri, files[0]);
 
 				const artifactFile = artifactUri.file;
+
 				const localFile = files[0].toString().file;
+
 				if (artifactFile !== localFile) {
 					void window.showErrorMessage(
 						`File names must match: "${artifactFile}" and "${localFile}"`,
 					);
+
 					return undefined;
 				}
 			}

@@ -5,12 +5,14 @@ import { Position } from "vscode";
 
 function getOffset(text: string, position: Position): number {
 	let line = 0;
+
 	for (let i = 0; i < text.length; i++) {
 		if (line === position.line) {
 			return i + position.character;
 		}
 
 		const ch = text[i];
+
 		if (ch === "\n") line++;
 	}
 	return text.length; // Right design?
@@ -45,6 +47,7 @@ export class StringTextDocument implements TextDocumentLike {
 
 	lineAt(line: number): TextLineLike {
 		const lineText = this.lines[line];
+
 		return {
 			firstNonWhitespaceCharacterIndex: lineText.search(/\S|$/),
 			range: { end: { character: lineText.length } },

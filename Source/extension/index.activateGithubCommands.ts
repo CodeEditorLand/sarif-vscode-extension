@@ -22,17 +22,21 @@ export function activateGithubCommands(
 		reason: DismissedReason,
 	) {
 		const { resultId } = context;
+
 		const result = findResult(store.logs, JSON.parse(resultId) as ResultId);
+
 		if (!result) return;
 
 		const logUri = result._log._uri; // Sample: https://api.github.com/repos/microsoft/binskim/code-scanning/analyses/46889472
 		const alertNumber = result.properties?.["github/alertNumber"];
+
 		if (!logUri || alertNumber === undefined) return;
 
 		const [, ownerAndRepo] =
 			logUri.match(
 				/https:\/\/api\.github\.com\/repos\/([^/]+\/[^/]+\/code-scanning)\/analyses\/\d+/,
 			) ?? [];
+
 		if (!ownerAndRepo) return;
 
 		// API: https://docs.github.com/en/rest/code-scanning#update-a-code-scanning-alert
@@ -47,6 +51,7 @@ export function activateGithubCommands(
 
 		if (!response) {
 			outputChannel.appendLine("No response");
+
 			return;
 		}
 
@@ -85,11 +90,14 @@ async function callGithubRepos(
 		["security_events"],
 		{ createIfNone: true },
 	);
+
 	const { accessToken } = session;
+
 	if (!accessToken) return undefined;
 
 	try {
 		// Useful for debugging the progress indicator: await new Promise(resolve => setTimeout(resolve, 2000));
+
 		return await fetch(`https://api.github.com/repos/${api}`, {
 			headers: {
 				"Authorization": `Bearer ${accessToken}`,

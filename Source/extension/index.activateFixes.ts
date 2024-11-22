@@ -45,9 +45,11 @@ export function activateFixes(
 					const diagnostic = context.diagnostics[0] as
 						| ResultDiagnostic
 						| undefined;
+
 					if (!diagnostic) return undefined;
 
 					const result = diagnostic?.result;
+
 					if (!result) return undefined;
 
 					return [
@@ -92,6 +94,7 @@ export function activateFixes(
 					}
 
 					store.resultsFixed.push(JSON.stringify(result._id));
+
 					return codeAction;
 				},
 			},
@@ -144,12 +147,15 @@ export async function applyFix(
 ) {
 	// Some fixes are injected as raw diffs. If so, apply them directly.
 	const diff = fix.properties?.diff;
+
 	if (diff) {
 		outputChannel?.appendLine("diff found:");
 		outputChannel?.appendLine("--------");
 		outputChannel?.appendLine(diff);
 		outputChannel?.appendLine("--------");
+
 		const git = await getInitializedGitApi();
+
 		if (!git) {
 			throw new Error("Unable to initialize Git API.");
 		}
@@ -158,6 +164,7 @@ export async function applyFix(
 			os.tmpdir(),
 			`${new Date().getTime()}.patch`,
 		);
+
 		try {
 			await workspace.fs.writeFile(
 				Uri.parse(filePath),
@@ -173,27 +180,34 @@ export async function applyFix(
 		return;
 	}
 	outputChannel?.appendLine("Edit found.");
+
 	const edit = new WorkspaceEdit();
+
 	for (const artifactChange of fix.artifactChanges) {
 		const [uri, uriBase] = parseArtifactLocation(
 			result,
 			artifactChange.artifactLocation,
 		);
+
 		const artifactUri = uri;
+
 		if (!artifactUri) continue;
 
 		const localUri = await baser.translateArtifactToLocal(
 			artifactUri,
 			uriBase,
 		);
+
 		if (!localUri) continue;
 		outputChannel?.appendLine(`Applying fix to ${localUri.toString()}`);
 
 		const currentDoc = await workspace.openTextDocument(localUri);
+
 		const originalDoc = await getOriginalDoc(
 			store.analysisInfo?.commit_sha,
 			currentDoc,
 		);
+
 		const diffBlocks = originalDoc
 			? diffChars(originalDoc.getText(), currentDoc.getText())
 			: [];

@@ -60,12 +60,15 @@ export async function getInitializedGitApi(): Promise<API | undefined> {
 	return new Promise((resolve) => {
 		const gitExtension =
 			extensions.getExtension<GitExtension>("vscode.git")?.exports;
+
 		if (!gitExtension) {
 			resolve(undefined);
+
 			return;
 		}
 
 		const git = gitExtension.getAPI(1);
+
 		if (git.state !== "initialized") {
 			git.onDidChangeState(async (state) => {
 				if (state === "initialized") {
@@ -105,6 +108,7 @@ export function activateGithubAnalyses(
 				)
 			)
 				return;
+
 			const connectToGithubCodeScanning = workspace
 				.getConfiguration("sarif-viewer")
 				.get<ConnectToGithubCodeScanning>(
@@ -118,6 +122,7 @@ export function activateGithubAnalyses(
 	const fullCodeScanningAlert = workspace
 		.getConfiguration("sarif-viewer")
 		.get<string>("githubCodeScanningInitialAlert");
+
 	const connectToGithubCodeScanning: ConnectToGithubCodeScanning =
 		fullCodeScanningAlert
 			? "injected"
@@ -130,6 +135,7 @@ export function activateGithubAnalyses(
 	outputChannel.appendLine(
 		`Connect to GitHub Code Scanning: ${connectToGithubCodeScanning}.`,
 	);
+
 	if (connectToGithubCodeScanning === "off") {
 		return;
 	}
@@ -140,26 +146,32 @@ export function activateGithubAnalyses(
 
 	(async () => {
 		const git = await getInitializedGitApi();
+
 		if (!git) {
 			outputChannel.appendLine(
 				"Not eligible to connect to GitHub Code Scanning: No Git api.",
 			);
+
 			return sendGithubEligibility("No Git api");
 		}
 
 		const repo = getPrimaryRepository(git);
+
 		if (!repo) {
 			outputChannel.appendLine(
 				"Not eligible to connect to GitHub Code Scanning: No Git repository.",
 			);
+
 			return sendGithubEligibility("No Git repository");
 		}
 
 		const origin = await findRemote(repo, outputChannel);
+
 		if (!origin) {
 			outputChannel.appendLine(
 				"Not eligible to connect to GitHub Code Scanning: No remote",
 			);
+
 			return sendGithubEligibility("No remote");
 		}
 
@@ -168,10 +180,12 @@ export function activateGithubAnalyses(
 			const matchHTTPS = origin.match(
 				/https:\/\/github\.com\/([^/]+)\/([^/]+)/,
 			);
+
 			if (matchHTTPS) return matchHTTPS;
 
 			// Example: git@github.com:user/repoName.git
 			const matchSSH = origin.match(/git@github\.com:([^/]+)\/([^/]+)/);
+
 			if (matchSSH) return matchSSH;
 
 			return [];
@@ -181,6 +195,7 @@ export function activateGithubAnalyses(
 			outputChannel.appendLine(
 				"Not eligible to connect to GitHub Code Scanning: No GitHub origin.",
 			);
+
 			return sendGithubEligibility("No GitHub origin");
 		}
 		config.user = user;
@@ -195,13 +210,16 @@ export function activateGithubAnalyses(
 			outputChannel.appendLine(
 				"Not eligible to connect to GitHub Code Scanning: No workspace.",
 			);
+
 			return sendGithubEligibility("No workspace");
 		}
 		const gitHeadPath = `${workspacePath}/.git/HEAD`;
+
 		if (!existsSync(gitHeadPath)) {
 			outputChannel.appendLine(
 				"Not eligible to connect to GitHub Code Scanning: No .git/HEAD.",
 			);
+
 			return sendGithubEligibility("No .git/HEAD");
 		}
 
@@ -211,6 +229,7 @@ export function activateGithubAnalyses(
 		sendGithubEligibility("Eligible");
 
 		let showPanel = connectToGithubCodeScanning !== "prompt";
+
 		if (connectToGithubCodeScanning === "prompt") {
 			const choice = await window.showInformationMessage(
 				"This repository has an origin (GitHub) that may have code scanning results. Connect to GitHub and display these results?",
@@ -219,6 +238,7 @@ export function activateGithubAnalyses(
 				"Never",
 			);
 			sendGithubPromptChoice(choice);
+
 			if (choice === "Never") {
 				outputChannel.appendLine(
 					"Never connect to GitHub Code Scanning by user request.",
@@ -232,11 +252,13 @@ export function activateGithubAnalyses(
 					async (progress) => {
 						progress.report({ increment: 20 }); // 20 is arbitrary as we have a non-deterministic number of steps.
 						await onBranchChanged(repo, gitHeadPath, true);
+
 						const analysisInfo = await fetchAnalysisInfo(
 							(message) => {
 								progress.report({ message, increment: 20 });
 							},
 						);
+
 						if (analysisInfo) {
 							workspace
 								.getConfiguration("sarif-viewer")
@@ -258,6 +280,7 @@ export function activateGithubAnalyses(
 					sendGithubAnalysisFound(
 						`Not Found: ${choiceTryAgain ?? "undefined"}`,
 					);
+
 					if (choiceTryAgain === "No") {
 						workspace
 							.getConfiguration("sarif-viewer")
@@ -331,10 +354,12 @@ export function activateGithubAnalyses(
 			.replace("ref: ", "")
 			.trim(); // example: refs/heads/demo
 		const branchName = branchRef.replace("refs/heads/", "");
+
 		const commitLocal = await repo.getCommit(branchRef);
 
 		store.branch = branchName;
 		store.commitHash = commitLocal.hash;
+
 		if (!skipAnalysisInfo) {
 			const analysisInfo = await fetchAnalysisInfo(
 				(message) => (store.banner = message),
@@ -354,15 +379,20 @@ export function activateGithubAnalyses(
 			["security_events"],
 			{ createIfNone: true },
 		);
+
 		const { accessToken } = session;
+
 		if (!accessToken) {
 			updateMessage("Unable to authenticate.");
+
 			return undefined;
 		}
 
 		// STEP 2: Fetch
 		const branchName = store.branch;
+
 		let analysesResponse: Response | undefined;
+
 		try {
 			// Useful for debugging the progress indicator: await new Promise(resolve => setTimeout(resolve, 2000));
 			analysesResponse = await fetch(
@@ -390,11 +420,13 @@ export function activateGithubAnalyses(
 			updateMessage(
 				"GitHub Advanced Security is not enabled for this repository.",
 			);
+
 			return undefined;
 		}
 
 		// STEP 3: Parse
 		const anyResponse = await analysesResponse.json();
+
 		if (anyResponse.message) {
 			// Sample message response:
 			// {
@@ -403,9 +435,11 @@ export function activateGithubAnalyses(
 			// }
 			const messageResponse = anyResponse as {
 				message: string;
+
 				documentation_url: string;
 			};
 			updateMessage(messageResponse.message);
+
 			return undefined;
 		}
 
@@ -416,6 +450,7 @@ export function activateGithubAnalyses(
 		// b) analysis is enabled, but pending first-ever run.
 		if (!analyses.length) {
 			updateMessage("Refresh to check for more current results.");
+
 			return undefined;
 		}
 		const analysesString = analyses
@@ -428,6 +463,7 @@ export function activateGithubAnalyses(
 
 		// STEP 4: Cross-reference with Git
 		const git = await getInitializedGitApi();
+
 		if (!git) {
 			updateMessage("Unable to initialize Git."); // No GitExtension or GitExtension API.
 			return undefined;
@@ -435,7 +471,9 @@ export function activateGithubAnalyses(
 
 		// Find the intersection.
 		const repo = getPrimaryRepository(git);
+
 		const commits = (await repo?.log({})) ?? [];
+
 		const commitsString = commits
 			.map(
 				({ commitDate, hash }) =>
@@ -443,6 +481,7 @@ export function activateGithubAnalyses(
 			)
 			.join("\n");
 		outputChannel.appendLine(`Commits:\n${commitsString}\n`);
+
 		const intersectingCommit = analyses.find((analysis) => {
 			return commits.some(
 				(commit) => analysis.commit_sha === commit.hash,
@@ -455,6 +494,7 @@ export function activateGithubAnalyses(
 
 		// GitHub sorts analyses by most recent first.
 		const toolsSeen = new Set<string>();
+
 		const analysisInfos = analyses.filter((analysis) => {
 			if (analysis.commit_sha !== intersectingCommit) return false;
 
@@ -462,8 +502,10 @@ export function activateGithubAnalyses(
 			if (toolsSeen.has(analysis.tool.name)) return false;
 
 			toolsSeen.add(analysis.tool.name);
+
 			return true;
 		});
+
 		if (!analysisInfos.length) {
 			return undefined;
 		}
@@ -517,25 +559,31 @@ export function activateGithubAnalyses(
 			["security_events"],
 			{ createIfNone: true },
 		);
+
 		const { accessToken } = session; // Assume non-null as we already called it recently.
 
 		const ids = analysisInfo?.ids;
+
 		const logs = !ids?.length // AnalysesForCommit.ids should not be zero-length, but this is an extra guard.
 			? undefined
 			: await (async () => {
 					try {
 						const logs = [] as Log[];
+
 						for (const analysisId of ids) {
 							const uri = `https://api.github.com/repos/${config.user}/${config.repoName}/code-scanning/analyses/${analysisId}`;
+
 							const analysisResponse = await fetch(uri, {
 								headers: {
 									accept: "application/sarif+json",
 									authorization: `Bearer ${accessToken}`,
 								},
 							});
+
 							const logText = await analysisResponse.text();
 							// Useful for saving/examining fetched logs:
 							// (await import('fs')).writeFileSync(`${workspace.workspaceFolders?.[0]?.uri.fsPath}/${analysisInfo.id}.sarif`, logText);
+
 							const log = parseLog(logText, uri);
 							logs.push(log);
 						}
@@ -544,6 +592,7 @@ export function activateGithubAnalyses(
 						outputChannel.append(
 							`Error in fetchAnalysis: ${error}\n`,
 						);
+
 						return undefined;
 					}
 				})();
@@ -562,6 +611,7 @@ export function activateGithubAnalyses(
 
 		panel.show();
 		isSpinning.set(false);
+
 		setBannerResultsUpdated(analysisInfo);
 	}
 
@@ -594,7 +644,9 @@ export function activateGithubAnalyses(
 
 	async function applyFixes(log: Log, outputChannel: OutputChannel) {
 		outputChannel.appendLine("Applying fixes...");
+
 		const baser = new UriRebaser(store);
+
 		const fixes: { result: Result; fix: Fix }[] = [];
 
 		// Gather all fixes
@@ -646,9 +698,11 @@ function parseLog(logText: string, uri = "file:///synthetic.sarif") {
 	const log = JSON.parse(logText) as Log;
 	log._text = logText;
 	log._uri = uri;
+
 	const primaryWorkspaceFolderUriString =
 		workspace.workspaceFolders?.[0]?.uri.toString(true); // No trailing slash
 	augmentLog(log, driverlessRules, primaryWorkspaceFolderUriString);
+
 	return log;
 }
 
@@ -674,11 +728,13 @@ async function findRemote(
 	outputChannel: OutputChannel,
 ): Promise<string | undefined> {
 	let remoteUrl: string | undefined;
+
 	for (let count = 0; count < 5 && !remoteUrl; count++) {
 		const remoteName = repo.state.HEAD?.upstream?.remote || "origin";
 		remoteUrl = repo.state.remotes.find(
 			(remote) => remote.name === remoteName,
 		)?.fetchUrl;
+
 		if (!remoteUrl && repo.state.remotes.length) {
 			remoteUrl = repo.state.remotes[0].fetchUrl;
 		}

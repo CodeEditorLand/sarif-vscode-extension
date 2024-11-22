@@ -55,14 +55,17 @@ export class ResultTableStore<G> extends TableStore<Result, G> {
 			(result) => `${result._rule?.name ?? "—"} ${result.ruleId ?? "—"}`,
 		),
 	];
+
 	get columns() {
 		return [...this.columnsPermanent, ...this.columnsOptional];
 	}
 	@computed get visibleColumns() {
 		const { filtersColumn } = this.filtersSource;
+
 		const optionalColumnNames = Object.entries(filtersColumn.Columns)
 			.filter(([_, state]) => state)
 			.map(([name]) => name);
+
 		return [
 			...this.columnsPermanent.filter(
 				(col) => col.name !== this.groupName,
@@ -75,15 +78,20 @@ export class ResultTableStore<G> extends TableStore<Result, G> {
 
 	protected get filter() {
 		const { keywords, filtersRow } = this.filtersSource;
+
 		const { columns } = this;
+
 		const mapToList = (record: Record<string, Visibility>) =>
 			Object.entries(record)
 				.filter(([, value]) => value)
 				.map(([label]) => label.toLowerCase());
 
 		const levels = mapToList(filtersRow.Level);
+
 		const baselines = mapToList(filtersRow.Baseline);
+
 		const suppressions = mapToList(filtersRow.Suppression);
+
 		const filterKeywords = keywords
 			.toLowerCase()
 			.split(/\s+/)
@@ -91,14 +99,20 @@ export class ResultTableStore<G> extends TableStore<Result, G> {
 
 		return (result: Result) => {
 			if (!levels.includes(result.level ?? "")) return false;
+
 			if (!baselines.includes(result.baselineState ?? "")) return false;
+
 			if (!suppressions.includes(result._suppression ?? "")) return false;
+
 			return columns.some((col) => {
 				const isMatch = (field: string, keywords: string[]) =>
 					!keywords.length ||
 					keywords.some((keyword) => field.includes(keyword));
+
 				const { toString } = col;
+
 				const field = toString(result).toLowerCase();
+
 				return isMatch(field, filterKeywords);
 			});
 		};
