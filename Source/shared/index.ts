@@ -324,6 +324,7 @@ export type CommandPanelToExtension =
 	| "setState"
 	| "refresh"
 	| "removeResultFixed";
+
 export type CommandExtensionToPanel =
 	| "select"
 	| "spliceLogs"
