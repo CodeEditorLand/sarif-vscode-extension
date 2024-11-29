@@ -32,9 +32,11 @@ declare module "sarif" {
 	interface Log {
 		_text: string; // If downloaded from a source (such as api.github) that the WebView cannot reach.
 		_uri: string;
+
 		_uriUpgraded?: string; // Only present if upgraded.
 		_jsonMap?: JsonMap; // Only used by the "extension" side for navigating original SARIF sources. The "panel" side does not need this feature and thus does not use this field.
 		_augmented: boolean;
+
 		_distinct: Map<string, string>; // Technically per Run, practically doesn't matter right now.
 	}
 
@@ -44,15 +46,23 @@ declare module "sarif" {
 
 	interface Result {
 		_log: Log;
+
 		_run: Run;
+
 		_id: ResultId;
+
 		_uri?: string;
+
 		_uriContents?: string; // ArtifactContent. Do not use this uri for display.
 		_relativeUri?: string;
+
 		_region?: Region;
+
 		_rule?: ReportingDescriptor;
+
 		_message: string; // '—' if empty.
 		_markdown?: string;
+
 		_suppression?: "not suppressed" | "suppressed";
 	}
 }
@@ -78,9 +88,11 @@ export function mapDistinct(pairs: [string, string][]): Map<string, string> {
 			distinct.set(key, value);
 		}
 	}
+
 	for (const [key, value] of distinct) {
 		if (!value) distinct.delete(key);
 	}
+
 	return distinct as Map<string, string>;
 }
 
@@ -90,9 +102,11 @@ export function augmentLog(
 	workspaceUri?: string,
 ) {
 	if (log._augmented) return;
+
 	log._augmented = true;
 
 	const fileAndUris = [] as [string, string][];
+
 	log.runs?.forEach((run, runIndex) => {
 		// types.d.ts is wrong, per spec `runs` is allowed to be null.
 		run._index = runIndex;
@@ -111,12 +125,15 @@ export function augmentLog(
 			if (!driverlessRules.has(id)) {
 				driverlessRules.set(id, { id });
 			}
+
 			return driverlessRules.get(id)!;
 		}
 
 		run.results?.forEach((result, resultIndex) => {
 			result._log = log;
+
 			result._run = run;
+
 			result._id = [log._uri, runIndex, resultIndex];
 
 			const ploc = result.locations?.[0]?.physicalLocation;
@@ -125,8 +142,11 @@ export function augmentLog(
 				result,
 				ploc?.artifactLocation,
 			);
+
 			result._uri = uri;
+
 			result._uriContents = uriContents;
+
 			result._relativeUri =
 				result._uri?.replace(workspaceUri ?? "", "") ?? ""; // For grouping, Empty works more predictably than undefined
 			{
@@ -138,6 +158,7 @@ export function augmentLog(
 					fileAndUris.push([file, uri.replace(/^\//, "")]); // Normalize leading slashes.
 				}
 			}
+
 			result._region = ploc?.region;
 
 			// The toolComponent is either specified in a ToolComponentReference or defaults to driver.
@@ -161,18 +182,22 @@ export function augmentLog(
 			const message =
 				result._rule?.messageStrings?.[result.message.id ?? -1] ??
 				result.message;
+
 			result._message =
 				format(
 					message.text || result.message?.text,
 					result.message.arguments,
 				) ?? "—";
+
 			result._markdown = format(
 				message.markdown || result.message?.markdown,
 				result.message.arguments,
 			); // No '—', leave undefined if empty.
 
 			result.level = effectiveLevel(result);
+
 			result.baselineState = result.baselineState ?? "new";
+
 			result._suppression =
 				!result.suppressions ||
 				result.suppressions.every((sup) => sup.status === "rejected")
@@ -180,6 +205,7 @@ export function augmentLog(
 					: "suppressed";
 		});
 	});
+
 	log._distinct = mapDistinct(fileAndUris);
 }
 
@@ -278,10 +304,12 @@ export function decodeFileUri(uriString: string) {
 	if (uri.scheme === "file") {
 		return uri.fsPath;
 	}
+
 	if (uri.scheme === "https") {
 		// For github api fetch situations.
 		return uri.authority;
 	}
+
 	return uriString;
 }
 

@@ -9,5 +9,6 @@ export default function (uri: Uri): Uri {
 	if (platform === "win32" && uri.scheme === "file") {
 		return Uri.parse(uri.toString().toLowerCase(), true);
 	}
+
 	return uri;
 }

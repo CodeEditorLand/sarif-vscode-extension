@@ -117,6 +117,7 @@ class ResultQuickFix extends CodeAction {
 			fix ? (fix.description?.text ?? "?") : "Mark as fixed",
 			CodeActionKind.QuickFix,
 		);
+
 		this.diagnostics = [diagnostic]; // Note: VSCode does not use this to clear the diagnostic.
 	}
 }
@@ -129,6 +130,7 @@ class DismissCodeAction extends CodeAction {
 		reasonText: string,
 	) {
 		super(`Dismiss - ${reasonText}`, CodeActionKind.Empty);
+
 		this.diagnostics = [diagnostic]; // Note: VSCode does not use this to clear the diagnostic.
 		this.command = {
 			title: "", // Leaving empty as it is seemingly not used (yet required).
@@ -150,8 +152,11 @@ export async function applyFix(
 
 	if (diff) {
 		outputChannel?.appendLine("diff found:");
+
 		outputChannel?.appendLine("--------");
+
 		outputChannel?.appendLine(diff);
+
 		outputChannel?.appendLine("--------");
 
 		const git = await getInitializedGitApi();
@@ -173,12 +178,15 @@ export async function applyFix(
 			// TODO assume exactly one repository, which will usually be the case for codespaces.
 			// All the situations we need to handle right now are single repository.
 			await git?.repositories[0].apply(filePath);
+
 			outputChannel?.appendLine("diff applied.");
 		} finally {
 			await workspace.fs.delete(Uri.parse(filePath));
 		}
+
 		return;
 	}
+
 	outputChannel?.appendLine("Edit found.");
 
 	const edit = new WorkspaceEdit();
@@ -199,6 +207,7 @@ export async function applyFix(
 		);
 
 		if (!localUri) continue;
+
 		outputChannel?.appendLine(`Applying fix to ${localUri.toString()}`);
 
 		const currentDoc = await workspace.openTextDocument(localUri);
@@ -225,5 +234,6 @@ export async function applyFix(
 			);
 		}
 	}
+
 	workspace.applyEdit(edit);
 }

@@ -40,15 +40,20 @@ import { UriRebaser } from "./uriRebaser";
 // Subset of the GitHub API.
 interface AnalysisInfo {
 	id: number;
+
 	commit_sha: string;
+
 	created_at: string;
+
 	tool: { name: string };
+
 	results_count: number;
 }
 
 // A concise representation of AnalysisInfo[] aligned by commit.
 export interface AnalysisInfosForCommit {
 	ids: number[];
+
 	commit_sha: string; // All analyses of this group, by definition, have the same commit.
 	created_at: string; // The latest `created_at` of the group.
 	commitsAgo: number;
@@ -114,6 +119,7 @@ export function activateGithubAnalyses(
 				.get<ConnectToGithubCodeScanning>(
 					"connectToGithubCodeScanning",
 				);
+
 			sendGithubConfig(connectToGithubCodeScanning ?? "undefined");
 		}),
 	);
@@ -132,6 +138,7 @@ export function activateGithubAnalyses(
 						"connectToGithubCodeScanning",
 						"prompt",
 					);
+
 	outputChannel.appendLine(
 		`Connect to GitHub Code Scanning: ${connectToGithubCodeScanning}.`,
 	);
@@ -139,6 +146,7 @@ export function activateGithubAnalyses(
 	if (connectToGithubCodeScanning === "off") {
 		return;
 	}
+
 	const config = {
 		user: "",
 		repoName: "",
@@ -198,7 +206,9 @@ export function activateGithubAnalyses(
 
 			return sendGithubEligibility("No GitHub origin");
 		}
+
 		config.user = user;
+
 		config.repoName = repoName.replace(".git", ""); // A repoName may optionally end with '.git'. Normalize it out.
 		outputChannel.appendLine(
 			`Repository name with owner: ${config.user}/${config.repoName}.`,
@@ -213,6 +223,7 @@ export function activateGithubAnalyses(
 
 			return sendGithubEligibility("No workspace");
 		}
+
 		const gitHeadPath = `${workspacePath}/.git/HEAD`;
 
 		if (!existsSync(gitHeadPath)) {
@@ -226,6 +237,7 @@ export function activateGithubAnalyses(
 		outputChannel.appendLine(
 			"Eligible to connect to GitHub Code Scanning.",
 		);
+
 		sendGithubEligibility("Eligible");
 
 		let showPanel = connectToGithubCodeScanning !== "prompt";
@@ -237,12 +249,14 @@ export function activateGithubAnalyses(
 				"Not now",
 				"Never",
 			);
+
 			sendGithubPromptChoice(choice);
 
 			if (choice === "Never") {
 				outputChannel.appendLine(
 					"Never connect to GitHub Code Scanning by user request.",
 				);
+
 				workspace
 					.getConfiguration("sarif-viewer")
 					.update("connectToGithubCodeScanning", "off");
@@ -263,10 +277,14 @@ export function activateGithubAnalyses(
 							workspace
 								.getConfiguration("sarif-viewer")
 								.update("connectToGithubCodeScanning", "on");
+
 							await panel.show();
+
 							updateAnalysisInfo(analysisInfo);
+
 							beginWatch(repo);
 						}
+
 						return !!analysisInfo;
 					},
 				);
@@ -277,6 +295,7 @@ export function activateGithubAnalyses(
 						"Yes",
 						"No",
 					);
+
 					sendGithubAnalysisFound(
 						`Not Found: ${choiceTryAgain ?? "undefined"}`,
 					);
@@ -288,6 +307,7 @@ export function activateGithubAnalyses(
 					}
 				} else {
 					sendGithubAnalysisFound("Found");
+
 					showPanel = true;
 				}
 			}
@@ -331,6 +351,7 @@ export function activateGithubAnalyses(
 				],
 				{ ignoreInitial: true },
 			);
+
 			watcher.on(
 				"all",
 				(/* examples: eventName = change, path = .git/refs/heads/demo */) => {
@@ -358,12 +379,14 @@ export function activateGithubAnalyses(
 		const commitLocal = await repo.getCommit(branchRef);
 
 		store.branch = branchName;
+
 		store.commitHash = commitLocal.hash;
 
 		if (!skipAnalysisInfo) {
 			const analysisInfo = await fetchAnalysisInfo(
 				(message) => (store.banner = message),
 			);
+
 			updateAnalysisInfo(analysisInfo);
 		}
 	}
@@ -395,6 +418,7 @@ export function activateGithubAnalyses(
 
 		try {
 			// Useful for debugging the progress indicator: await new Promise(resolve => setTimeout(resolve, 2000));
+
 			analysesResponse = await fetch(
 				`https://api.github.com/repos/${config.user}/${config.repoName}/code-scanning/analyses?ref=refs/heads/${branchName}`,
 				{
@@ -411,11 +435,14 @@ export function activateGithubAnalyses(
 			//     "errno": "ENOTFOUND",
 			//     "code": "ENOTFOUND"
 			// }
+
 			updateMessage("Network error. Refresh to try again.");
 		}
+
 		if (!analysesResponse) {
 			return undefined;
 		}
+
 		if (analysesResponse.status === 403) {
 			updateMessage(
 				"GitHub Advanced Security is not enabled for this repository.",
@@ -433,11 +460,13 @@ export function activateGithubAnalyses(
 			//     "message": "You are not authorized to read code scanning alerts.",
 			//     "documentation_url": "https://docs.github.com/rest/reference/code-scanning#list-code-scanning-analyses-for-a-repository"
 			// }
+
 			const messageResponse = anyResponse as {
 				message: string;
 
 				documentation_url: string;
 			};
+
 			updateMessage(messageResponse.message);
 
 			return undefined;
@@ -453,12 +482,14 @@ export function activateGithubAnalyses(
 
 			return undefined;
 		}
+
 		const analysesString = analyses
 			.map(
 				({ created_at, commit_sha, id, tool, results_count }) =>
 					`${created_at} ${commit_sha} ${id} ${tool.name} ${results_count}`,
 			)
 			.join("\n");
+
 		outputChannel.appendLine(`Analyses:\n${analysesString}\n`);
 
 		// STEP 4: Cross-reference with Git
@@ -480,6 +511,7 @@ export function activateGithubAnalyses(
 					`${commitDate?.toISOString().replace(".000", "")} ${hash}`,
 			)
 			.join("\n");
+
 		outputChannel.appendLine(`Commits:\n${commitsString}\n`);
 
 		const intersectingCommit = analyses.find((analysis) => {
@@ -545,6 +577,7 @@ export function activateGithubAnalyses(
 			if (store.analysisInfo !== undefined) {
 				store.analysisInfo = undefined;
 			}
+
 			store.banner = `This branch has not been scanned.`;
 		}
 	}
@@ -585,8 +618,10 @@ export function activateGithubAnalyses(
 							// (await import('fs')).writeFileSync(`${workspace.workspaceFolders?.[0]?.uri.fsPath}/${analysisInfo.id}.sarif`, logText);
 
 							const log = parseLog(logText, uri);
+
 							logs.push(log);
 						}
+
 						return logs;
 					} catch (error) {
 						outputChannel.append(
@@ -601,15 +636,18 @@ export function activateGithubAnalyses(
 			for (const currentLogUri of currentLogUris) {
 				store.logs.removeFirst((log) => log._uri === currentLogUri);
 			}
+
 			currentLogUris = undefined;
 		}
 
 		if (logs) {
 			store.logs.push(...logs);
+
 			currentLogUris = logs.map((log) => log._uri);
 		}
 
 		panel.show();
+
 		isSpinning.set(false);
 
 		setBannerResultsUpdated(analysisInfo);
@@ -621,23 +659,33 @@ export function activateGithubAnalyses(
 	) {
 		try {
 			const log = parseLog(logText);
+
 			outputChannel.appendLine(
 				`Handling injected log with ${log.runs.length} runs.`,
 			);
+
 			store.logs.push(log);
+
 			await applyFixes(log, outputChannel);
+
 			panel.show();
+
 			isSpinning.set(false);
+
 			store.banner = `Results loaded for default alert.`;
+
 			outputChannel.appendLine("Success.");
+
 			sendGithubAutofixApplied("success");
 		} catch (e) {
 			window.showErrorMessage(
 				`Unable to parse SARIF and apply fixes: ${errorToString(e)}`,
 			);
+
 			outputChannel.appendLine(
 				`Unable to parse SARIF and apply fixes: ${errorToString(e)}`,
 			);
+
 			sendGithubAutofixApplied("failure", errorToString(e));
 		}
 	}
@@ -655,6 +703,7 @@ export function activateGithubAnalyses(
 				result.fixes?.forEach((fix) => fixes.push({ result, fix }));
 			});
 		});
+
 		outputChannel.appendLine(`Found ${fixes.length} fix(es).`);
 
 		// Apply them serially
@@ -675,6 +724,7 @@ export function activateGithubAnalyses(
 					` on ${new Date(analysisInfo.created_at).toLocaleString()}.` +
 					` Refresh to check for more current results.`
 				: "";
+
 		store.banner =
 			`Results ${verb} for current commit ${store.commitHash.slice(0, 7)}.` +
 			messageWarnStale;
@@ -682,10 +732,12 @@ export function activateGithubAnalyses(
 
 	// TODO: Block re-entrance.
 	observe(store, "analysisInfo", () => fetchAnalysis(store.analysisInfo));
+
 	observe(store, "remoteAnalysisInfoUpdated", async () => {
 		const analysisInfo = await fetchAnalysisInfo(
 			(message) => (store.banner = message),
 		);
+
 		updateAnalysisInfo(analysisInfo);
 	});
 }
@@ -696,7 +748,9 @@ function errorToString(e: unknown) {
 
 function parseLog(logText: string, uri = "file:///synthetic.sarif") {
 	const log = JSON.parse(logText) as Log;
+
 	log._text = logText;
+
 	log._uri = uri;
 
 	const primaryWorkspaceFolderUriString =
@@ -731,6 +785,7 @@ async function findRemote(
 
 	for (let count = 0; count < 5 && !remoteUrl; count++) {
 		const remoteName = repo.state.HEAD?.upstream?.remote || "origin";
+
 		remoteUrl = repo.state.remotes.find(
 			(remote) => remote.name === remoteName,
 		)?.fetchUrl;
@@ -738,6 +793,7 @@ async function findRemote(
 		if (!remoteUrl && repo.state.remotes.length) {
 			remoteUrl = repo.state.remotes[0].fetchUrl;
 		}
+
 		if (!remoteUrl) {
 			await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for Git to initialize.
 			outputChannel.appendLine("Git not initialized. Waiting...");

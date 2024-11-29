@@ -57,22 +57,28 @@ export class Panel {
 
 			if (type !== "splice")
 				throw new Error("Only splice allowed on store.logs.");
+
 			this.spliceLogs(removed, added);
 		});
+
 		observe(store.resultsFixed, (change) => {
 			const { type, removed, added } =
 				change as unknown as IArraySplice<string>;
 
 			if (type !== "splice")
 				throw new Error("Only splice allowed on store.resultFixes.");
+
 			this.spliceResultsFixed(removed, added);
 		});
+
 		autorun(() => {
 			const count = store.results.length;
 
 			if (!this.panel) return;
+
 			this.panel.title = `${count} ${this.title}${count === 1 ? "" : "s"}`;
 		});
+
 		autorun(() => {
 			this.panel?.webview.postMessage({
 				command: "setBanner",
@@ -106,6 +112,7 @@ export class Panel {
 				retainContextWhenHidden: true,
 			},
 		));
+
 		this.panel.onDidDispose(() => (this.panel = null));
 
 		const srcPanel = Uri.file(`${context.extensionPath}/out/panel.js`);
@@ -125,10 +132,15 @@ export class Panel {
                 <meta charset="UTF-8">
                 <meta http-equiv="Content-Security-Policy" content="
                     default-src 'none';
+
                     connect-src vscode-resource:;
+
                     font-src    vscode-resource:;
+
                     img-src     data:;
+
                     script-src  vscode-resource:;
+
                     style-src   vscode-resource: 'unsafe-inline';
                     ">
                 <meta name="storeState"        content='${JSON.stringify(Store.globalState.get("view", defaultState))}'>
@@ -159,6 +171,7 @@ export class Panel {
 
 						break;
 					}
+
 					case "open": {
 						const uris = await window.showOpenDialog({
 							canSelectMany: true,
@@ -167,10 +180,12 @@ export class Panel {
 						});
 
 						if (!uris) return;
+
 						store.logs.push(...(await loadLogs(uris)));
 
 						break;
 					}
+
 					case "closeLog": {
 						store.logs.removeFirst(
 							(log) => log._uri === message.uri,
@@ -178,16 +193,21 @@ export class Panel {
 
 						break;
 					}
+
 					case "closeAllLogs": {
 						store.logs.splice(0);
 
 						break;
 					}
+
 					case "select": {
 						const { logUri, uri, uriBase, region } = message as {
 							logUri: string;
+
 							uri: string;
+
 							uriBase: string | undefined;
+
 							region: Region;
 						};
 
@@ -210,10 +230,12 @@ export class Panel {
 							);
 
 						if (!validatedUri) return;
+
 						await this.selectLocal(logUri, validatedUri, region);
 
 						break;
 					}
+
 					case "selectLog": {
 						const [logUri, runIndex, resultIndex] =
 							message.id as ResultId;
@@ -249,6 +271,7 @@ export class Panel {
 							endLine: valueEnd.line,
 							endColumn: valueEnd.column,
 						} as Region;
+
 						await this.selectLocal(
 							logUri,
 							logUriUpgraded,
@@ -257,6 +280,7 @@ export class Panel {
 
 						break;
 					}
+
 					case "setState": {
 						const oldState = Store.globalState.get(
 							"view",
@@ -264,6 +288,7 @@ export class Panel {
 						);
 
 						const { state } = message;
+
 						await Store.globalState.update(
 							"view",
 							Object.assign(oldState, JSON.parse(state)),
@@ -271,19 +296,23 @@ export class Panel {
 
 						break;
 					}
+
 					case "refresh": {
 						await store.remoteAnalysisInfoUpdated++;
 
 						break;
 					}
+
 					case "removeResultFixed": {
 						const idToRemove = JSON.stringify(message.id);
+
 						store.resultsFixed.removeFirst(
 							(id) => id === idToRemove,
 						);
 
 						break;
 					}
+
 					default:
 						throw new Error(
 							`Unhandled command: ${message.command}`,
@@ -303,7 +332,9 @@ export class Panel {
 		// Keep/pin active Log as needed
 		for (const editor of window.visibleTextEditors.slice()) {
 			if (editor.document.uri.toString() !== logUri) continue;
+
 			await window.showTextDocument(editor.document, editor.viewColumn);
+
 			await commands.executeCommand("workbench.action.keepEditor");
 		}
 
@@ -321,6 +352,7 @@ export class Panel {
 			ViewColumn.One,
 			true,
 		);
+
 		this.store.disableSelectionSync = false;
 
 		if (region === undefined) return;
@@ -340,6 +372,7 @@ export class Panel {
 			region,
 			originalDoc,
 		);
+
 		editor.revealRange(
 			editor.selection,
 			TextEditorRevealType.InCenterIfOutsideViewport,

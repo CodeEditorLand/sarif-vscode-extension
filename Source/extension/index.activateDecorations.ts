@@ -76,6 +76,7 @@ export function activateDecorations(
 			// Thus we are not concerned with clearing any previously rendered decorations.
 			return;
 		}
+
 		const result = findResult(store.logs, JSON.parse(resultId) as ResultId);
 
 		if (!result) {
@@ -119,6 +120,7 @@ export function activateDecorations(
 					originalDoc,
 				),
 			);
+
 			editor.setDecorations(decorationTypeHighlight, ranges);
 
 			{
@@ -155,20 +157,25 @@ export function activateDecorations(
 						},
 					}, // ←
 				}));
+
 				editor.setDecorations(decorationTypeCallout, decorCallouts);
 			}
 		}
 	}
 
 	disposables.push({ dispose: observe(activeResultId, update) });
+
 	disposables.push(window.onDidChangeVisibleTextEditors(update));
+
 	disposables.push({
 		dispose: observe(store.logs, (change) => {
 			const { removed } = change as unknown as IArraySplice<Log>;
 
 			if (!removed.length) return;
+
 			window.visibleTextEditors.forEach((editor) => {
 				editor.setDecorations(decorationTypeCallout, []);
+
 				editor.setDecorations(decorationTypeHighlight, []);
 			});
 		}),

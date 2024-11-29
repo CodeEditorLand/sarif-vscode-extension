@@ -13,17 +13,21 @@ type Selector<T> = (_: T) => number | string;
 declare global {
 	interface Array<T> {
 		last: T;
+
 		replace(items: T[]): void; // From Mobx, but not showing up.
 		remove(item: T): boolean; // From Mobx, but not showing up.
 		removeFirst(predicate: (item: T) => boolean): T | false;
+
 		sortBy<T>(
 			this: T[],
 			selector: Selector<T>,
 			descending?: boolean,
 		): Array<T>; // Not a copy
 	}
+
 	interface String {
 		file: string;
+
 		path: string;
 	}
 }

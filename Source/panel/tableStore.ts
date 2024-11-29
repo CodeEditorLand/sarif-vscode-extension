@@ -20,6 +20,7 @@ export class Column<T> {
 
 export abstract class Row {
 	private static instances = 0;
+
 	public readonly key = Row.instances++;
 }
 
@@ -29,10 +30,13 @@ export class RowGroup<T, G> extends Row {
 	get expanded() {
 		return this.expandedState.get();
 	}
+
 	set expanded(value: boolean) {
 		this.expandedState.set(value);
 	}
+
 	public items = [] as RowItem<T>[];
+
 	public itemsFiltered = [] as RowItem<T>[];
 
 	constructor(
@@ -44,6 +48,7 @@ export class RowGroup<T, G> extends Row {
 		if (!expansionStates.has(title)) {
 			expansionStates.set(title, observable.box(false));
 		}
+
 		this.expandedState = expansionStates.get(this.title)!;
 	}
 }
@@ -75,6 +80,7 @@ export class TableStore<T, G> {
 	}
 	@computed({ keepAlive: true }) private get groups() {
 		const map = new Map<G | undefined, RowGroup<T, G | undefined>>();
+
 		this.rowItems.forEach((item) => {
 			const key = this.groupBy(item.item);
 
@@ -82,7 +88,9 @@ export class TableStore<T, G> {
 				map.set(key, new RowGroup(key, this.expansionStates));
 
 			const group = map.get(key)!;
+
 			group.items.push(item);
+
 			item.group = group;
 		});
 
@@ -94,6 +102,7 @@ export class TableStore<T, G> {
 	get columns(): Column<any>[] {
 		return [];
 	}
+
 	protected get filter() {
 		return (_item: T) => true;
 	}
@@ -105,9 +114,11 @@ export class TableStore<T, G> {
 				this.sortDir === SortDir.Asc ? SortDir.Dsc : SortDir.Asc;
 		} else {
 			this.sortColumn = newCol;
+
 			this.sortDir = SortDir.Asc;
 		}
 	}
+
 	sort(items: RowItem<T>[]) {
 		const { columns, sortColumn, sortDir } = this;
 
@@ -118,6 +129,7 @@ export class TableStore<T, G> {
 		const { toNumber, toString } = column;
 
 		const toSortable = toNumber ?? toString;
+
 		items.sortBy((item) => toSortable(item.item), sortDir === SortDir.Dsc);
 	}
 
@@ -128,8 +140,10 @@ export class TableStore<T, G> {
 			group.itemsFiltered = group.items.filter(
 				(item) => filter?.(item.item) ?? true,
 			);
+
 			this.sort(group.itemsFiltered);
 		}
+
 		return this.groups.filter((group) => group.itemsFiltered.length);
 	}
 	@computed public get rows() {
@@ -140,11 +154,13 @@ export class TableStore<T, G> {
 
 			if (group.expanded) rows.push(...group.itemsFiltered);
 		}
+
 		return rows;
 	}
 
 	select(item: T) {
 		const row = this.rowItems.find((row) => row.item === item);
+
 		this.selection.set(row);
 
 		if (row?.group) row.group.expanded = true;

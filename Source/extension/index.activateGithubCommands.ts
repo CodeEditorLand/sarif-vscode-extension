@@ -59,6 +59,7 @@ export function activateGithubCommands(
 			store.resultsFixed.push(resultId);
 		} else {
 			const json = await response.json(); // { message, documentation_url }
+
 			outputChannel.appendLine(
 				`Status ${response.status} - ${json.message}`,
 			);

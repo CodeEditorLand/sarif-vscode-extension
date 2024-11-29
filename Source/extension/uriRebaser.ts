@@ -51,6 +51,7 @@ async function workspaceHasDistinctFilename(
 workspace.onDidCreateFiles(async (event) => {
 	for (const file of event.files) {
 		const filename = path.basename(file.path);
+
 		workspaceDistinctFilenameCache.delete(filename);
 	}
 });
@@ -70,6 +71,7 @@ workspace.onDidRenameFiles(async (event) => {
 workspace.onDidDeleteFiles(async (event) => {
 	for (const file of event.files) {
 		const filename = path.basename(file.path);
+
 		workspaceDistinctFilenameCache.delete(filename);
 	}
 });
@@ -91,6 +93,7 @@ export class UriRebaser {
 		) {
 			commonLength++;
 		}
+
 		this.basesArtifactToLocal.set(
 			artifact.slice(0, -commonLength),
 			localPath.slice(0, -commonLength),
@@ -98,7 +101,9 @@ export class UriRebaser {
 	}
 
 	private validatedUrisArtifactToLocal = new Map<string, Uri>();
+
 	private validatedUrisLocalToArtifact = new Map<string, string>();
+
 	private updateValidatedUris(artifact: string, local: Uri) {
 		this.validatedUrisArtifactToLocal.set(artifact, local);
 
@@ -132,17 +137,22 @@ export class UriRebaser {
 			) {
 				const artifactUri = this.store.distinctArtifactNames.get(file)!; // Not undefined due to surrounding if.
 				this.updateValidatedUris(artifactUri, localUri);
+
 				this.updateBases(artifactUri, localUri);
 			}
 		}
+
 		return this.validatedUrisLocalToArtifact.get(localUri.toString());
 	}
 
 	private extensionName = "sarif-viewer";
+
 	private trustedSourceSitesConfigSection = "trustedSourceSites";
+
 	private trustedSites = workspace
 		.getConfiguration(this.extensionName)
 		.get<string[]>(this.trustedSourceSitesConfigSection, []);
+
 	private activeInfoMessages = new Set<string>(); // Prevent repeat message animations when arrowing through many results with the same uri.
 	public async translateArtifactToLocal(
 		artifactUri: string,
@@ -248,7 +258,9 @@ export class UriRebaser {
 				this.store.distinctArtifactNames.has(file)
 			) {
 				const localUri = distinctFilename;
+
 				this.updateValidatedUris(artifactUri, localUri);
+
 				this.updateBases(artifactUri, localUri);
 
 				return localUri;
@@ -259,7 +271,9 @@ export class UriRebaser {
 				const localUri = doc.uri;
 
 				if (localUri.toString().file !== artifactUri.file) continue;
+
 				this.updateValidatedUris(artifactUri, localUri);
+
 				this.updateBases(artifactUri, localUri);
 
 				return localUri;
@@ -301,17 +315,20 @@ export class UriRebaser {
 					// check if user marked this site as trusted to download always
 					if (!this.trustedSites.includes(url.hostname)) {
 						this.activeInfoMessages.add(artifactUri);
+
 						choice = await window.showInformationMessage(
 							`Do you want to download the source file from this location?\n${url}`,
 							"Yes",
 							"No",
 							alwaysMsg,
 						);
+
 						this.activeInfoMessages.delete(artifactUri);
 					}
 					// save the user preference to settings
 					if (choice === alwaysMsg) {
 						this.trustedSites.push(url.hostname);
+
 						workspace
 							.getConfiguration(this.extensionName)
 							.update(
@@ -340,7 +357,9 @@ export class UriRebaser {
 							const buffer = await response.buffer();
 
 							const dir = path.dirname(fileName);
+
 							await mkdirRecursive(dir);
+
 							await fs.promises.writeFile(fileName, buffer);
 
 							this.updateBases(artifactUri, fileUrl);
@@ -362,6 +381,7 @@ export class UriRebaser {
 				`Unable to find '${artifactUri.file}'`,
 				"Locate...",
 			);
+
 			this.activeInfoMessages.delete(artifactUri);
 
 			if (choice) {
@@ -389,8 +409,10 @@ export class UriRebaser {
 					return undefined;
 				}
 			}
+
 			validatedUri = await validateUri(); // Try again
 		}
+
 		return validatedUri;
 	}
 

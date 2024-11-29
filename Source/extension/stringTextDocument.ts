@@ -15,17 +15,21 @@ function getOffset(text: string, position: Position): number {
 
 		if (ch === "\n") line++;
 	}
+
 	return text.length; // Right design?
 }
 
 interface TextLineLike {
 	firstNonWhitespaceCharacterIndex: number;
+
 	range: { end: { character: number } };
 }
 
 export interface TextDocumentLike {
 	lineAt(line: number): TextLineLike;
+
 	positionAt(offset: number): Position;
+
 	offsetAt(position: Position): number;
 }
 
@@ -38,10 +42,12 @@ export class StringTextDocument implements TextDocumentLike {
 	}
 
 	private _lines: undefined | string[];
+
 	private get lines(): string[] {
 		if (!this._lines) {
 			this._lines = this.text.split(/\r?\n/g);
 		}
+
 		return this._lines;
 	}
 

@@ -13,17 +13,22 @@ export interface Api {
 	 * @param logs An array of Uris to open.
 	 */
 	openLogs(logs: Uri[]): Promise<void>;
+
 	closeLogs(
 		logs: Uri[],
 		_options?: unknown,
 		cancellationToken?: CancellationToken,
 	): Promise<void>;
+
 	closeAllLogs(): Promise<void>;
+
 	selectByIndex(
 		uri: Uri,
 		runIndex: number,
 		resultIndex: number,
 	): Promise<void>;
+
 	uriBases: ReadonlyArray<Uri>;
+
 	dispose(): void;
 }

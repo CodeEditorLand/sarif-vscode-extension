@@ -17,10 +17,15 @@ export function activateSarifStatusBarItem(
 	if (statusBarItem) return;
 
 	statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
+
 	disposables.push(statusBarItem);
+
 	statusBarItem.text = getStatusText();
+
 	statusBarItem.command = "sarif.showPanel";
+
 	statusBarItem.tooltip = "Show SARIF Panel";
+
 	statusBarItem.show();
 
 	observe(isSpinning, () => (statusBarItem!.text = getStatusText()));

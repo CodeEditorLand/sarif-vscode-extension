@@ -24,6 +24,7 @@ export async function loadLogs(
 				const file = readFileSync(uri.fsPath, "utf8") // Assume scheme file.
 					.replace(/^\uFEFF/, ""); // Trim BOM.
 				const log = JSON.parse(file) as Log;
+
 				log._uri = uri.toString();
 
 				return log;
@@ -38,6 +39,7 @@ export async function loadLogs(
 	logs.forEach((log) =>
 		Telemetry.sendLogVersion(log.version, log.$schema ?? ""),
 	);
+
 	logs.forEach(tryFastUpgradeLog);
 
 	const logsSupported = [] as Log[];
@@ -52,6 +54,7 @@ export async function loadLogs(
 		if (token?.isCancellationRequested) break;
 
 		const { fsPath } = Uri.parse(log._uri, true);
+
 		window.showWarningMessage(
 			`'${fsPath}' was not loaded. Version '${log.version}' and schema '${log.$schema ?? ""}' is not supported.`,
 		);
@@ -62,6 +65,7 @@ export async function loadLogs(
 	// and not as `file:///c:/folder/`    (toString(true /* skip encode */))
 	const primaryWorkspaceFolderUriString =
 		workspace.workspaceFolders?.[0]?.uri.toString();
+
 	logsSupported.forEach((log) => {
 		// Only supporting single workspaces for now.
 		augmentLog(log, driverlessRules, primaryWorkspaceFolderUriString);
@@ -72,6 +76,7 @@ export async function loadLogs(
 			"Some log versions are newer than this extension.",
 		);
 	}
+
 	return logsSupported;
 }
 
@@ -114,6 +119,7 @@ export function detectSupport(
 			logsNotSupported.push(log);
 		}
 	}
+
 	return false;
 }
 
@@ -150,13 +156,16 @@ function applyRtm5(log: Log) {
 	// Skipping upgrading inlineExternalProperties as the viewer does not use it.
 	log.$schema =
 		"https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json";
+
 	log.runs?.forEach((run) => {
 		run.results?.forEach((result) => {
 			// Pre-rtm5 suppression type is different, thus casting as `any`.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			result.suppressions?.forEach((suppression: any) => {
 				if (!suppression.state) return;
+
 				suppression.status = suppression.state;
+
 				delete suppression.state;
 			});
 		});

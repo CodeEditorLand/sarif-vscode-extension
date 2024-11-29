@@ -18,12 +18,15 @@ export class ResultTableStore<G> extends TableStore<Result, G> {
 		>,
 		readonly filtersSource: {
 			keywords: string;
+
 			filtersRow: Record<string, Record<string, Visibility>>;
+
 			filtersColumn: Record<string, Record<string, Visibility>>;
 		},
 		readonly selection: IObservableValue<Row | undefined>,
 	) {
 		super(groupBy, resultsSource, selection);
+
 		this.sortColumn = this.columnsPermanent[0].name;
 	}
 
@@ -38,6 +41,7 @@ export class ResultTableStore<G> extends TableStore<Result, G> {
 		new Column<Result>("File", 250, (result) => result._relativeUri ?? ""),
 		new Column<Result>("Message", 300, (result) => result._message ?? ""),
 	];
+
 	private columnsOptional = [
 		new Column<Result>(
 			"Baseline",

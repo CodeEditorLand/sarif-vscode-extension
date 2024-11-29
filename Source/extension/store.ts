@@ -38,7 +38,9 @@ export class Store {
 	}
 
 	public disableSelectionSync = false;
+
 	public branch = "";
+
 	public commitHash = "";
 	@observable.shallow analysisInfo: AnalysisInfosForCommit | undefined;
 	@observable remoteAnalysisInfoUpdated = 0; // A version number as a substitute for a value-less observable.
@@ -46,6 +48,7 @@ export class Store {
 	constructor() {
 		intercept(this.logs, (objChange) => {
 			const change = objChange as unknown as IArrayWillSplice<Log>;
+
 			change.added = change.added.filter((log) =>
 				this.logs.every((existing) => existing._uri !== log._uri),
 			);

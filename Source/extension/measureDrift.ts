@@ -11,6 +11,7 @@ export function measureDrift(
 	if (diffBlocks[0]?.added || diffBlocks[0]?.removed) {
 		diffBlocks.unshift({ value: "" }); // skipping change.count
 	}
+
 	let offsetL = 0;
 
 	let offsetR = 0;
@@ -20,8 +21,11 @@ export function measureDrift(
 			throw new Error("Unexpected added/removed");
 
 		const drift = offsetR - offsetL;
+
 		offsetL += diffBlocks[i].value.length;
+
 		offsetR += diffBlocks[i].value.length;
+
 		i++;
 
 		if (offsetL > offsetStart) {
@@ -32,17 +36,22 @@ export function measureDrift(
 		if (diffBlocks[i]?.removed) {
 			// Left side
 			offsetL += diffBlocks[i].value.length;
+
 			i++;
 		}
+
 		if (diffBlocks[i]?.added) {
 			// Right side
 			offsetR += diffBlocks[i].value.length;
+
 			i++;
 		}
+
 		if (offsetL > offsetStart) {
 			// > or >=
 			return undefined; // does not map to a changed block
 		}
 	}
+
 	return undefined;
 }

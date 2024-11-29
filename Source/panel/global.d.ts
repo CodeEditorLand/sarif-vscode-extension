@@ -13,6 +13,7 @@ declare global {
 			fromIndex?: number | undefined,
 		): number;
 	}
+
 	interface ReadonlyArray<T> {
 		indexOf(
 			searchElement: T | undefined,

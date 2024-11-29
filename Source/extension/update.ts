@@ -12,11 +12,13 @@ import { commands, extensions, Uri, window, workspace } from "vscode";
 
 interface GitHubAsset {
 	content_type: string;
+
 	browser_download_url: string;
 }
 
 interface GitHubRelease {
 	tag_name: string;
+
 	assets: GitHubAsset[];
 }
 
@@ -77,6 +79,7 @@ function isUpdateEnabled() {
 // TODO: Handle/test http proxies.
 export async function update() {
 	if (updateInProgress) return false;
+
 	updateInProgress = true;
 
 	if (!isUpdateEnabled()) return false;
@@ -120,6 +123,7 @@ export async function update() {
 			const vsixFile = tmpNameSync({ postfix: ".vsix" });
 
 			const stream = fs.createWriteStream(vsixFile);
+
 			await new Promise((resolve, reject) => {
 				const request = redirectableHttps.get(
 					{
@@ -131,16 +135,20 @@ export async function update() {
 					},
 					(response) => {
 						if (response.statusCode !== 200) reject();
+
 						response.pipe(stream);
+
 						response.on("end", resolve);
 					},
 				);
+
 				request.on("error", reject);
 			});
 
 			// 4) Install the VSIX, unless the user decides not to.
 			// The user can change the "update channel" setting during the download. Thus, we need to re-confirm.
 			if (!isUpdateEnabled()) return false;
+
 			await commands.executeCommand(
 				"workbench.extensions.installExtension",
 				Uri.file(vsixFile),
@@ -154,6 +162,7 @@ export async function update() {
 			if (response) {
 				await commands.executeCommand("workbench.action.reloadWindow");
 			}
+
 			return true;
 		} catch (error) {
 			return false;

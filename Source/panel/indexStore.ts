@@ -40,6 +40,7 @@ export class IndexStore {
 		defaultSelection?: boolean,
 	) {
 		this.filtersRow = state.filtersRow;
+
 		this.filtersColumn = state.filtersColumn;
 
 		const setState = async () => {
@@ -49,6 +50,7 @@ export class IndexStore {
 				filtersRow: toJS(filtersRow),
 				filtersColumn: toJS(filtersColumn),
 			};
+
 			await vscode.postMessage({
 				command: "setState",
 				state: JSON.stringify(state, null, "    "),
@@ -57,8 +59,11 @@ export class IndexStore {
 		};
 		// Sadly unable to observe at the root.
 		observe(this.filtersRow.Level, setState);
+
 		observe(this.filtersRow.Baseline, setState);
+
 		observe(this.filtersRow.Suppression, setState);
+
 		observe(this.filtersColumn.Columns, setState);
 
 		// `change` should be `IArrayWillSplice<Log>` but `intercept()` is not being inferred properly.
@@ -66,6 +71,7 @@ export class IndexStore {
 		intercept(this.logs, (change: any) => {
 			if (change.type !== "splice")
 				throw new Error(`Unexpected change type. ${change.type}`);
+
 			change.added.forEach((log: Log) => {
 				augmentLog(log, this.driverlessRules, workspaceUri);
 			});
@@ -75,17 +81,20 @@ export class IndexStore {
 
 		observe(this.logs, () => {
 			if (this.logs.length) return;
+
 			this.selection.set(undefined);
 		});
 
 		if (defaultSelection) {
 			const store = this.resultTableStoreByLocation;
+
 			when(
 				() => !!store.rows.length,
 				() => {
 					const item = store.rows.find(
 						(row) => row instanceof RowItem,
 					) as RowItem<Result>;
+
 					this.selection.set(item);
 				},
 			);
@@ -110,7 +119,9 @@ export class IndexStore {
 	@computed public get results() {
 		return this.runs.map((run) => run.results ?? []).flat();
 	}
+
 	selection = observable.box<Row | undefined>(undefined);
+
 	resultTableStoreByLocation = new ResultTableStore(
 		"File",
 		(result) => result._relativeUri,
@@ -118,6 +129,7 @@ export class IndexStore {
 		this,
 		this.selection,
 	);
+
 	resultTableStoreByRule = new ResultTableStore(
 		"Rule",
 		(result) => result._rule,
@@ -148,6 +160,7 @@ export class IndexStore {
 	] as {
 		store: ResultTableStore<string | ReportingDescriptor> | undefined;
 	}[];
+
 	selectedTab = observable.box(this.tabs[0], { deep: false });
 
 	// Messages
@@ -168,6 +181,7 @@ export class IndexStore {
 				const result = findResult(this.logs, id);
 
 				if (!result) throw new Error("Unexpected: result undefined");
+
 				this.selectedTab.get().store?.select(result);
 			}
 		}
@@ -178,13 +192,17 @@ export class IndexStore {
 
 				if (i >= 0) this.logs.splice(i, 1);
 			}
+
 			for (const { text, uri, uriUpgraded, webviewUri } of event.data
 				.added) {
 				const log: Log = text
 					? JSON.parse(text)
 					: await (await fetch(webviewUri)).json();
+
 				log._uri = uri;
+
 				log._uriUpgraded = uriUpgraded;
+
 				this.logs.push(log);
 			}
 		}
@@ -193,6 +211,7 @@ export class IndexStore {
 			for (const resultIdString of event.data.removed) {
 				this.resultsFixed.remove(resultIdString);
 			}
+
 			for (const resultIdString of event.data.added) {
 				this.resultsFixed.push(resultIdString);
 			}
@@ -231,6 +250,7 @@ export async function postSelectArtifact(
 	);
 
 	const region = ploc?.region;
+
 	await vscode.postMessage({
 		command: "select",
 		logUri,

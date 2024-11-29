@@ -56,12 +56,15 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 	const disposables = context.subscriptions;
 
 	const outputChannel = window.createOutputChannel("Sarif Viewer");
+
 	disposables.push(outputChannel);
 
 	Store.globalState = context.globalState;
+
 	disposables.push(
 		commands.registerCommand("sarif.clearState", () => {
 			context.globalState.update("view", undefined);
+
 			commands.executeCommand("workbench.action.reloadWindow");
 		}),
 	);
@@ -73,6 +76,7 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 
 	// Panel
 	const panel = new Panel(context, baser, store);
+
 	disposables.push(
 		commands.registerCommand("sarif.showPanel", () => panel.show()),
 	);
@@ -134,6 +138,7 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 
 				try {
 					const jsonObject = await response.json();
+
 					await promises.writeFile(filePath, jsonObject.value);
 
 					// Load the log into the Viewer.
@@ -159,13 +164,21 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 
 	// General Activation
 	activateSarifStatusBarItem(disposables);
+
 	activateDiagnostics(disposables, store, baser, outputChannel);
+
 	activateWatchDocuments(disposables, store, panel);
+
 	activateDecorations(disposables, store, baser);
+
 	activateVirtualDocuments(disposables, store);
+
 	activateSelectionSync(disposables, store, panel);
+
 	activateGithubAnalyses(disposables, store, panel, outputChannel);
+
 	activateGithubCommands(disposables, store, outputChannel);
+
 	activateFixes(disposables, store, baser);
 
 	// Check for Updates
@@ -174,9 +187,11 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 			workspace.onDidChangeConfiguration((event) => {
 				if (!event.affectsConfiguration(updateChannelConfigSection))
 					return;
+
 				update();
 			}),
 		);
+
 		update();
 	}
 
@@ -196,6 +211,7 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 			store.logs.removeFirst(
 				(log) => log._uri === Uri.file(path).toString(),
 			);
+
 			store.logs.push(...(await loadLogs([Uri.file(path)])));
 		})
 		.on("unlink", (path) => {
@@ -203,6 +219,7 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 				(log) => log._uri === Uri.file(path).toString(),
 			);
 		});
+
 	disposables.push(new Disposable(async () => await watcher.close()));
 
 	// API
@@ -213,6 +230,7 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 			cancellationToken?: CancellationToken,
 		) {
 			watcher.add(logs.map((log) => log.fsPath));
+
 			store.logs.push(...(await loadLogs(logs, cancellationToken)));
 
 			if (cancellationToken?.isCancellationRequested) return;
@@ -231,6 +249,7 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 		},
 		async closeAllLogs() {
 			watcher.unwatch("**/*");
+
 			store.logs.splice(0);
 		},
 		async selectByIndex(uri: Uri, runIndex: number, resultIndex: number) {
@@ -246,7 +265,9 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 		},
 		dispose: () => {
 			Telemetry.deactivate();
+
 			api.closeAllLogs();
+
 			disposables.forEach((disposable) => disposable?.dispose?.());
 		},
 	};
@@ -267,6 +288,7 @@ function activateDiagnostics(
 	outputChannel: OutputChannel,
 ) {
 	const diagsAll = languages.createDiagnosticCollection("SARIF");
+
 	disposables.push(diagsAll);
 
 	const setDiags = async (doc: TextDocument) => {
@@ -282,6 +304,7 @@ function activateDiagnostics(
 			if (doc.uri.scheme === "sarif") {
 				return doc.uri.toString();
 			}
+
 			return baser.translateLocalToArtifact(doc.uri);
 		})();
 
@@ -298,6 +321,7 @@ function activateDiagnostics(
 
 		const workspaceUri =
 			workspace.workspaceFolders?.[0]?.uri.toString() ?? "file://";
+
 		outputChannel.appendLine(
 			`updateDiags ${doc.uri.toString().replace(workspaceUri, "")}. ${matchingResults.length} Results.\n`,
 		);
@@ -335,8 +359,11 @@ function activateDiagnostics(
 
 		diagsAll.set(doc.uri, diags);
 	};
+
 	workspace.textDocuments.forEach(setDiags);
+
 	disposables.push(workspace.onDidOpenTextDocument(setDiags));
+
 	disposables.push(
 		workspace.onDidCloseTextDocument((doc) => diagsAll.delete(doc.uri)),
 	); // Spurious *.git deletes don't hurt.
@@ -347,6 +374,7 @@ function activateDiagnostics(
 	const disposerStore = observe(store, "results", () =>
 		workspace.textDocuments.forEach(setDiags),
 	);
+
 	disposables.push({ dispose: disposerStore });
 }
 
@@ -361,13 +389,18 @@ function activateWatchDocuments(
 
 		if (store.logs.some((log) => log._uri === doc.uri.toString())) return; // TODO: Potentially redundant, need to verify.
 		store.logs.push(...(await loadLogs([doc.uri])));
+
 		panel.show();
 	};
+
 	workspace.textDocuments.forEach(addLog);
+
 	disposables.push(workspace.onDidOpenTextDocument(addLog));
+
 	disposables.push(
 		workspace.onDidCloseTextDocument((doc) => {
 			if (!doc.fileName.match(/\.sarif$/i)) return;
+
 			store.logs.removeFirst((log) => log._uri === doc.uri.toString());
 		}),
 	);
@@ -420,6 +453,7 @@ function activateVirtualDocuments(disposables: Disposable[], store: Store) {
 						}, "") ?? ""
 					);
 				}
+
 				token.isCancellationRequested = true;
 
 				return "";

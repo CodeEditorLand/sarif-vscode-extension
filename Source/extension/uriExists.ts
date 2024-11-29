@@ -11,5 +11,6 @@ export default async function uriExists(absoluteUri: Uri) {
 	} catch (error) {
 		return false;
 	}
+
 	return true;
 }
