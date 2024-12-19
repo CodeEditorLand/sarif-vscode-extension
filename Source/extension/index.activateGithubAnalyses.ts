@@ -458,7 +458,7 @@ export function activateGithubAnalyses(
 			// Sample message response:
 			// {
 			//     "message": "You are not authorized to read code scanning alerts.",
-			//     "documentation_url": "https://docs.github.com/rest/reference/code-scanning#list-code-scanning-analyses-for-a-repository"
+			//     "documentation_url": "HTTPS://docs.github.com/rest/reference/code-scanning#list-code-scanning-analyses-for-a-repository"
 			// }
 
 			const messageResponse = anyResponse as {
